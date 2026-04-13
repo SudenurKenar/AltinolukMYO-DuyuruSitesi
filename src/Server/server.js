@@ -36,31 +36,81 @@ const upload = multer({ storage: storage });
 // 1. BİLDİRİ ROTALARI (CRUD)
 // ==========================================
 
-// Listeleme
+// Listeleme: Kategorileri ve Mesaj Türlerini "Join" ile getirir
 app.get('/api/mesajlar', async (req, res) => {
     try {
         const query = `
-            SELECT m.id, m.baslik, m.aciklama, m.atistarihi, m.mesajturu_id, t.tur as mesaj_turu
+            SELECT 
+                m.id, 
+                m.baslik, 
+                m.aciklama, 
+                m.atistarihi, 
+                m.mesajturu_id, 
+                m.kategori_id,
+                t.tur as mesaj_turu,
+                k.ad as kategori_adi
             FROM mesaj m
             LEFT JOIN mesajturu t ON m.mesajturu_id = t.id
+            LEFT JOIN kategori k ON m.kategori_id = k.id
             ORDER BY m.atistarihi DESC
         `;
         const queryResult = await db.query(query);
+        // Frontend filter() işleminin patlamaması için her zaman rows döndürülür
         res.status(200).json(queryResult.rows);
     } catch (error) {
-        res.status(500).json({ success: false, message: "Bildiriler getirilemedi." });
+        console.error("Fermanlar çekilirken hata oluştu:", error);
+        res.status(500).json([]); // Hata durumunda boş dizi dönülür
     }
 });
 
-// Ekleme
+// Ekleme: Kategori ID'sini de veritabanına işler
 app.post('/api/mesaj-ekle', async (req, res) => {
-    const { baslik, aciklama, mesajturu_id } = req.body;
+    const { baslik, aciklama, mesajturu_id, kategori_id } = req.body;
     try {
-        const query = 'INSERT INTO mesaj (baslik, aciklama, mesajturu_id) VALUES ($1, $2, $3) RETURNING *';
-        const result = await db.query(query, [baslik, aciklama, mesajturu_id]);
-        res.status(201).json({ success: true, data: result.rows[0] });
+        const query = 'INSERT INTO mesaj (baslik, aciklama, mesajturu_id, kategori_id) VALUES ($1, $2, $3, $4) RETURNING *';
+        const result = await db.query(query, [baslik, aciklama, mesajturu_id, kategori_id]);
+
+        // Eklenen veriyi kategori adıyla birlikte tekrar çekiyoruz ki Frontend anında görsün
+        const finalQuery = `
+            SELECT m.*, t.tur as mesaj_turu, k.ad as kategori_adi 
+            FROM mesaj m
+            LEFT JOIN mesajturu t ON m.mesajturu_id = t.id
+            LEFT JOIN kategori k ON m.kategori_id = k.id
+            WHERE m.id = $1`;
+        const finalResult = await db.query(finalQuery, [result.rows[0].id]);
+
+        res.status(201).json({ success: true, data: finalResult.rows[0] });
     } catch (error) {
+        console.error("Ekleme Hatası:", error);
         res.status(500).json({ success: false, message: "Bildiri eklenemedi." });
+    }
+});
+
+// Güncelleme: Kategori güncelleme desteği eklendi
+app.put('/api/mesaj-duzenle/:id', async (req, res) => {
+    const { id } = req.params;
+    const { baslik, aciklama, mesajturu_id, kategori_id } = req.body;
+    try {
+        const query = `
+            UPDATE mesaj 
+            SET baslik = $1, aciklama = $2, mesajturu_id = $3, kategori_id = $4 
+            WHERE id = $5 
+            RETURNING *
+        `;
+        await db.query(query, [baslik, aciklama, mesajturu_id, kategori_id, id]);
+
+        const finalQuery = `
+            SELECT m.*, t.tur as mesaj_turu, k.ad as kategori_adi 
+            FROM mesaj m
+            LEFT JOIN mesajturu t ON m.mesajturu_id = t.id
+            LEFT JOIN kategori k ON m.kategori_id = k.id
+            WHERE m.id = $1`;
+        const finalResult = await db.query(finalQuery, [id]);
+
+        res.status(200).json({ success: true, data: finalResult.rows[0] });
+    } catch (error) {
+        console.error("Güncelleme Hatası:", error);
+        res.status(500).json({ success: false, message: "Güncelleme başarısız." });
     }
 });
 
@@ -69,22 +119,9 @@ app.delete('/api/mesaj-sil/:id', async (req, res) => {
     const { id } = req.params;
     try {
         await db.query('DELETE FROM mesaj WHERE id = $1', [id]);
-        res.status(200).json({ success: true, message: "Bildiri silindi." });
+        res.status(200).json({ success: true, message: "Ferman sistemden kaldırıldı." });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Bildiri silinemedi." });
-    }
-});
-
-// Güncelleme
-app.put('/api/mesaj-duzenle/:id', async (req, res) => {
-    const { id } = req.params;
-    const { baslik, aciklama, mesajturu_id } = req.body;
-    try {
-        const query = 'UPDATE mesaj SET baslik = $1, aciklama = $2, mesajturu_id = $3 WHERE id = $4 RETURNING *';
-        const result = await db.query(query, [baslik, aciklama, mesajturu_id, id]);
-        res.status(200).json({ success: true, data: result.rows[0] });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Güncelleme başarısız." });
+        res.status(500).json({ success: false, message: "Silme işlemi başarısız." });
     }
 });
 
@@ -125,11 +162,15 @@ app.put('/api/kategori-duzenle/:id', async (req, res) => {
 app.delete('/api/kategori-sil/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        // Not: Eğer bir kategoriye bağlı ödevler varsa silme hata verir (FK kısıtlaması)
+        // Önce bu kategoriye bağlı mesaj var mı kontrol edebilirsiniz veya 
+        // direkt silmeyi deneyip hata yakalayabilirsiniz.
         await db.query('DELETE FROM kategori WHERE id = $1', [id]);
-        res.status(200).json({ success: true });
+        res.status(200).json({ success: true, message: "Kategori arşivi temizlendi." });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Kategori kullanımda olduğu için silinemez." });
+        res.status(500).json({
+            success: false,
+            message: "Bu kategoriye bağlı duyurular olduğu için silinemez. Önce duyuruları siliniz."
+        });
     }
 });
 

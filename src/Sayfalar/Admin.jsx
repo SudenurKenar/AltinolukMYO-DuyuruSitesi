@@ -2,12 +2,21 @@ import { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import toast from 'react-hot-toast';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function Admin() {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Form State'leri
     const [baslik, setBaslik] = useState("");
     const [aciklama, setAciklama] = useState("");
     const [mesajTuruId, setMesajTuruId] = useState("");
     const [kategoriId, setKategoriId] = useState("");
+
+    // Düzenleme Modu Kontrolcüleri
+    const [duzenlemeModu, setDuzenlemeModu] = useState(false);
+    const [duzenlenecekId, setDuzenlenecekId] = useState(null);
 
     const [mesajTurleri, setMesajTurleri] = useState([]);
     const [kategoriler, setKategoriler] = useState([]);
@@ -15,40 +24,65 @@ export default function Admin() {
     useEffect(() => {
         const fetchVeriler = async () => {
             try {
-                // Mesaj Türlerini Getir (Güncel/Sürekli)
-                const turRes = await fetch("http://localhost:5000/api/mesajturu");
+                const [turRes, katRes] = await Promise.all([
+                    fetch("http://localhost:5000/api/mesajturu"),
+                    fetch("http://localhost:5000/api/kategori")
+                ]);
                 setMesajTurleri(await turRes.json());
-
-                // Kategorileri Getir (Sınav, Etkinlik vb.)
-                const katRes = await fetch("http://localhost:5000/api/kategori");
                 setKategoriler(await katRes.json());
             } catch (error) {
-                toast.error("Veriler yüklenirken bir sorun oluştu.");
+                toast.error("Sistem verileri yüklenirken bir sorun oluştu.");
             }
         };
         fetchVeriler();
-    }, []);
 
-    const handleMesajEkle = async (e) => {
+        // ARŞİVDEN GELEN VERİ KONTROLÜ
+        if (location.state && location.state.düzenlenecekMesaj) {
+            const m = location.state.düzenlenecekMesaj;
+            setBaslik(m.baslik);
+            setAciklama(m.aciklama); // HTML içerik ReactQuill tarafından otomatik işlenir
+            setMesajTuruId(m.mesajturu_id);
+            setKategoriId(m.kategori_id);
+            setDuzenlemeModu(true);
+            setDuzenlenecekId(m.id);
+
+            toast("Kayıt resmi düzenleme için hazırlandı.", { icon: '📝' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }, [location]);
+
+    const handleMesajIslemi = async (e) => {
         e.preventDefault();
         if (!mesajTuruId || !kategoriId) return toast.error("Lütfen statü ve kategori seçiniz.");
 
-        const toastId = toast.loading('Bildiri yayınlanıyor...');
+        const url = duzenlemeModu
+            ? `http://localhost:5000/api/mesaj-duzenle/${duzenlenecekId}`
+            : "http://localhost:5000/api/mesaj-ekle";
+
+        const method = duzenlemeModu ? "PUT" : "POST";
+        const toastId = toast.loading(duzenlemeModu ? 'Değişiklikler işleniyor...' : 'Bildiri yayınlanıyor...');
+
         try {
-            const response = await fetch("http://localhost:5000/api/mesaj-ekle", {
-                method: "POST",
+            const response = await fetch(url, {
+                method: method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     baslik,
                     aciklama,
                     mesajturu_id: mesajTuruId,
-                    kategori_id: kategoriId // Veritabanında bu sütun olmalı
+                    kategori_id: kategoriId
                 })
             });
             const data = await response.json();
             if (data.success) {
-                toast.success("Bildiri başarıyla yayınlandı!", { id: toastId });
+                toast.success(duzenlemeModu ? "Kayıt başarıyla güncellendi!" : "Bildiri başarıyla yayınlandı!", { id: toastId });
+
+                // Formu temizle ve modu sıfırla
                 setBaslik(""); setAciklama(""); setMesajTuruId(""); setKategoriId("");
+                setDuzenlemeModu(false); setDuzenlenecekId(null);
+
+                // Düzenleme bittiyse arşive geri dön
+                if (duzenlemeModu) navigate('/admin/arsiv');
             } else {
                 toast.error("İşlem başarısız!", { id: toastId });
             }
@@ -69,18 +103,17 @@ export default function Admin() {
 
     return (
         <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl shadow-cyan-100/50 p-8 border border-cyan-50">
-            <h3 className="text-2xl font-bold text-slate-700 mb-8">Yeni Bildiri Ekle</h3>
-            <form onSubmit={handleMesajEkle} className="space-y-6">
+            <h3 className="text-2xl font-bold text-slate-700 mb-8">
+                {duzenlemeModu ? "Bildiri Düzenleme Kürsüsü" : "Yeni Bildiri Ekle"}
+            </h3>
+            <form onSubmit={handleMesajIslemi} className="space-y-6">
 
                 <div className="space-y-1">
                     <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri Başlığı</label>
                     <input type="text" value={baslik} onChange={(e) => setBaslik(e.target.value)} className="font-sans font-bold w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm text-slate-700 transition-all" required />
                 </div>
 
-                {/* Statü ve Kategori Yan Yana Hizalandı */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
-
-                    {/* SOL: Mesaj Statüsü (Radio Buttons) */}
                     <div className="space-y-3">
                         <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri Statüsü</label>
                         <div className="flex gap-6 ml-2 p-3 bg-slate-50 rounded-2xl border border-slate-100">
@@ -109,7 +142,6 @@ export default function Admin() {
                         </div>
                     </div>
 
-                    {/* SAĞ: Kategori Seçimi (Select Box) */}
                     <div className="space-y-3">
                         <label className="text-xs font-bold uppercase tracking-widest text-slate-400 ml-2">Kategori</label>
                         <select
@@ -133,10 +165,19 @@ export default function Admin() {
                     </div>
                 </div>
 
-                <div className="pt-4">
-                    <button type="submit" className="font-sans font-bold w-full md:w-auto px-10 bg-cyan-600 hover:bg-cyan-700 text-white py-4 rounded-2xl shadow-lg shadow-cyan-200 active:scale-95 text-lg transition-all">
-                        Bildiriyi Yayınla
+                <div className="pt-4 flex gap-4">
+                    <button type="submit" className="font-sans font-bold flex-1 bg-cyan-600 hover:bg-cyan-700 text-white py-4 rounded-2xl shadow-lg shadow-cyan-200 active:scale-95 text-lg transition-all">
+                        {duzenlemeModu ? "Değişiklikleri Kaydet" : "Bildiriyi Yayınla"}
                     </button>
+                    {duzenlemeModu && (
+                        <button
+                            type="button"
+                            onClick={() => { navigate('/admin/arsiv'); }}
+                            className="font-sans font-bold px-8 bg-slate-100 text-slate-500 py-4 rounded-2xl transition-all"
+                        >
+                            Vazgeç
+                        </button>
+                    )}
                 </div>
             </form>
         </div>

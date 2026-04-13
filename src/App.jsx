@@ -7,6 +7,7 @@ import AdminLayout from "./Layouts/AdminLayout";
 import SayfaBulunamadi from "./Sayfalar/SayfaBulunamadi";
 import Arsiv from "./Sayfalar/Arsiv";
 import KategoriYonetimi from "./Sayfalar/KategoriYonetimi";
+import DuyuruDetay from "./Sayfalar/DuyuruDetay";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/" element={<AnaLayout><Anasayfa /></AnaLayout>} />
       <Route path="/giris" element={<AnaLayout><GirisYap /></AnaLayout>} />
       <Route path="*" element={<AnaLayout><SayfaBulunamadi /></AnaLayout>} />
+      <Route path="/detay/:id/:slug" element={<DuyuruDetay />} />
 
       {/* ========================================== */}
       {/* 2. YÖNETİM PANELİ (Sadece Yöneticilere Özel)  */}
