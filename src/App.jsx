@@ -8,6 +8,8 @@ import SayfaBulunamadi from "./Sayfalar/SayfaBulunamadi";
 import Arsiv from "./Sayfalar/Arsiv";
 import KategoriYonetimi from "./Sayfalar/KategoriYonetimi";
 import DuyuruDetay from "./Sayfalar/DuyuruDetay";
+import OdevGonder from "./Sayfalar/OdevGonder";
+import AdminOdevler from "./Sayfalar/AdminOdevler";
 
 function App() {
   return (
@@ -20,6 +22,7 @@ function App() {
       <Route path="/giris" element={<AnaLayout><GirisYap /></AnaLayout>} />
       <Route path="*" element={<AnaLayout><SayfaBulunamadi /></AnaLayout>} />
       <Route path="/detay/:id/:slug" element={<DuyuruDetay />} />
+      <Route path="/OdevGonder" element={<AnaLayout><OdevGonder /></AnaLayout>} />
 
       {/* ========================================== */}
       {/* 2. YÖNETİM PANELİ (Sadece Yöneticilere Özel)  */}
@@ -28,6 +31,8 @@ function App() {
         <Route index element={<Admin />} />
         <Route path="arsiv" element={<Arsiv />} />
         <Route path="kategori" element={<KategoriYonetimi />} />
+        <Route path="odevler" element={<AdminOdevler />} />
+        <Route path="*" element={<SayfaBulunamadi />} />
       </Route>
     </Routes>
   );

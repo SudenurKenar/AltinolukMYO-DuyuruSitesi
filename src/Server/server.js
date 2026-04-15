@@ -14,9 +14,9 @@ const JWT_SECRET = 'kurumsal_erisim_anahtari_2026';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- MULTER AYARLARI ---
 const storage = multer.diskStorage({
@@ -33,102 +33,69 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // ==========================================
+// STATİK DOSYA SUNUMU (GÜVENLİ ÖN İZLEME AYARI)
+// ==========================================
+// Tarayıcının dosyayı indirmeyip açması için Content-Type ve Content-Disposition ayarları yapıldı.
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+    setHeaders: (res, filePath) => {
+        const ext = path.extname(filePath).toLowerCase();
+
+        // Güvenlik Başlıkları
+        res.set('X-Content-Type-Options', 'nosniff');
+        res.set('Content-Security-Policy', "default-src 'self'");
+
+        // 'inline' komutu: "İndirme, tarayıcı içinde göster" emridir.
+        res.set('Content-Disposition', 'inline');
+
+        // Tarayıcıya dosyanın ne olduğunu açıkça söylüyoruz
+        const mimeTypes = {
+            '.pdf': 'application/pdf',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/image/png',
+            '.txt': 'text/plain',
+            '.html': 'text/html'
+        };
+
+        if (mimeTypes[ext]) {
+            res.set('Content-Type', mimeTypes[ext]);
+        }
+    }
+}));
+
+// ==========================================
 // 1. BİLDİRİ ROTALARI (CRUD)
 // ==========================================
-
-// Listeleme: Kategorileri ve Mesaj Türlerini "Join" ile getirir
 app.get('/api/mesajlar', async (req, res) => {
     try {
         const query = `
-            SELECT 
-                m.id, 
-                m.baslik, 
-                m.aciklama, 
-                m.atistarihi, 
-                m.mesajturu_id, 
-                m.kategori_id,
-                t.tur as mesaj_turu,
-                k.ad as kategori_adi
+            SELECT m.id, m.baslik, m.aciklama, m.atistarihi, m.mesajturu_id, m.kategori_id,
+                   t.tur as mesaj_turu, k.ad as kategori_adi
             FROM mesaj m
             LEFT JOIN mesajturu t ON m.mesajturu_id = t.id
             LEFT JOIN kategori k ON m.kategori_id = k.id
-            ORDER BY m.atistarihi DESC
-        `;
+            ORDER BY m.atistarihi DESC`;
         const queryResult = await db.query(query);
-        // Frontend filter() işleminin patlamaması için her zaman rows döndürülür
         res.status(200).json(queryResult.rows);
     } catch (error) {
-        console.error("Fermanlar çekilirken hata oluştu:", error);
-        res.status(500).json([]); // Hata durumunda boş dizi dönülür
+        res.status(500).json([]);
     }
 });
 
-// Ekleme: Kategori ID'sini de veritabanına işler
 app.post('/api/mesaj-ekle', async (req, res) => {
     const { baslik, aciklama, mesajturu_id, kategori_id } = req.body;
     try {
         const query = 'INSERT INTO mesaj (baslik, aciklama, mesajturu_id, kategori_id) VALUES ($1, $2, $3, $4) RETURNING *';
         const result = await db.query(query, [baslik, aciklama, mesajturu_id, kategori_id]);
-
-        // Eklenen veriyi kategori adıyla birlikte tekrar çekiyoruz ki Frontend anında görsün
-        const finalQuery = `
-            SELECT m.*, t.tur as mesaj_turu, k.ad as kategori_adi 
-            FROM mesaj m
-            LEFT JOIN mesajturu t ON m.mesajturu_id = t.id
-            LEFT JOIN kategori k ON m.kategori_id = k.id
-            WHERE m.id = $1`;
-        const finalResult = await db.query(finalQuery, [result.rows[0].id]);
-
-        res.status(201).json({ success: true, data: finalResult.rows[0] });
+        res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
-        console.error("Ekleme Hatası:", error);
-        res.status(500).json({ success: false, message: "Bildiri eklenemedi." });
-    }
-});
-
-// Güncelleme: Kategori güncelleme desteği eklendi
-app.put('/api/mesaj-duzenle/:id', async (req, res) => {
-    const { id } = req.params;
-    const { baslik, aciklama, mesajturu_id, kategori_id } = req.body;
-    try {
-        const query = `
-            UPDATE mesaj 
-            SET baslik = $1, aciklama = $2, mesajturu_id = $3, kategori_id = $4 
-            WHERE id = $5 
-            RETURNING *
-        `;
-        await db.query(query, [baslik, aciklama, mesajturu_id, kategori_id, id]);
-
-        const finalQuery = `
-            SELECT m.*, t.tur as mesaj_turu, k.ad as kategori_adi 
-            FROM mesaj m
-            LEFT JOIN mesajturu t ON m.mesajturu_id = t.id
-            LEFT JOIN kategori k ON m.kategori_id = k.id
-            WHERE m.id = $1`;
-        const finalResult = await db.query(finalQuery, [id]);
-
-        res.status(200).json({ success: true, data: finalResult.rows[0] });
-    } catch (error) {
-        console.error("Güncelleme Hatası:", error);
-        res.status(500).json({ success: false, message: "Güncelleme başarısız." });
-    }
-});
-
-// Silme
-app.delete('/api/mesaj-sil/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await db.query('DELETE FROM mesaj WHERE id = $1', [id]);
-        res.status(200).json({ success: true, message: "Ferman sistemden kaldırıldı." });
-    } catch (error) {
-        res.status(500).json({ success: false, message: "Silme işlemi başarısız." });
+        res.status(500).json({ success: false });
     }
 });
 
 // ==========================================
-// 2. KATEGORİ ROTALARI (CRUD)
+// 2. KATEGORİ VE MESAJ TURU ROTALARI
 // ==========================================
-
 app.get('/api/kategori', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM kategori ORDER BY ad ASC');
@@ -137,46 +104,6 @@ app.get('/api/kategori', async (req, res) => {
         res.status(500).json({ success: false });
     }
 });
-
-app.post('/api/kategori-ekle', async (req, res) => {
-    const { ad } = req.body;
-    try {
-        const result = await db.query('INSERT INTO kategori (ad) VALUES ($1) RETURNING *', [ad]);
-        res.status(201).json({ success: true, data: result.rows[0] });
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
-});
-
-app.put('/api/kategori-duzenle/:id', async (req, res) => {
-    const { id } = req.params;
-    const { ad } = req.body;
-    try {
-        const result = await db.query('UPDATE kategori SET ad = $1 WHERE id = $2 RETURNING *', [ad, id]);
-        res.status(200).json({ success: true, data: result.rows[0] });
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
-});
-
-app.delete('/api/kategori-sil/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        // Önce bu kategoriye bağlı mesaj var mı kontrol edebilirsiniz veya 
-        // direkt silmeyi deneyip hata yakalayabilirsiniz.
-        await db.query('DELETE FROM kategori WHERE id = $1', [id]);
-        res.status(200).json({ success: true, message: "Kategori arşivi temizlendi." });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Bu kategoriye bağlı duyurular olduğu için silinemez. Önce duyuruları siliniz."
-        });
-    }
-});
-
-// ==========================================
-// 3. ÖDEVLER VE MESAJ TURU
-// ==========================================
 
 app.get('/api/mesajturu', async (req, res) => {
     try {
@@ -187,31 +114,46 @@ app.get('/api/mesajturu', async (req, res) => {
     }
 });
 
+// ==========================================
+// 3. ÖDEV SİSTEMİ
+// ==========================================
+
 app.get('/api/odevler', async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM odev ORDER BY yuklenme_tarihi DESC');
+        const result = await db.query('SELECT * FROM odev ORDER BY yukleme_tarihi DESC');
         res.status(200).json(result.rows);
     } catch (error) {
+        console.error("Ödev listeleme hatası:", error);
         res.status(500).json({ success: false });
     }
 });
 
-app.post('/api/odev-yukle', upload.single('dosya'), async (req, res) => {
-    const { isim, soyisim, no, ders, aciklama } = req.body;
-    const dosyaYolu = req.file ? `/uploads/${req.file.filename}` : null;
+app.post('/api/odevler', upload.single('odev_dosyasi'), async (req, res) => {
+    const { no, isim, soyisim, ders, aciklama } = req.body;
+    const dosya_yolu = req.file ? `/uploads/${req.file.filename}` : null;
+
     try {
-        const query = 'INSERT INTO odev (isim, soyisim, no, ders, aciklama, dosya_yolu) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
-        const result = await db.query(query, [isim, soyisim, String(no), ders, aciklama, dosyaYolu]);
-        res.status(201).json({ success: true, data: result.rows[0] });
+        const query = `
+            INSERT INTO odev (isim, soyisim, no, ders, aciklama, dosya_yolu, yukleme_tarihi) 
+            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP) 
+            RETURNING *`;
+
+        const result = await db.query(query, [isim, soyisim, no, ders || 'Genel', aciklama || '', dosya_yolu]);
+
+        res.status(201).json({
+            success: true,
+            message: "Ödev arşive mühürlendi Hanımım.",
+            data: result.rows[0]
+        });
     } catch (error) {
-        res.status(500).json({ success: false });
+        console.error("ÖDEV KAYIT HATASI:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
 // ==========================================
 // 4. ADMİN GİRİŞ
 // ==========================================
-
 app.post('/api/admin/login', async (req, res) => {
     const { id, sifre } = req.body;
     try {
