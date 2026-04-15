@@ -13,8 +13,6 @@ export default function GirisYap() {
             const response = await fetch('http://localhost:5000/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // Siz ekranda Kullanıcı Adı yazıyorsunuz ama 
-                // backend ID: 1 beklediği için arka planda 'id' olarak gönderiyoruz.
                 body: JSON.stringify({
                     id: kullaniciAdi,
                     sifre: sifre
@@ -24,10 +22,11 @@ export default function GirisYap() {
             const data = await response.json();
 
             if (data.success) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("isLoggedIn", "true");
-                // Buradaki 'id' formdan gelen kullanıcı adınızdır (Aykut_Durgut)
-                localStorage.setItem("userName", kullaniciAdi);
+                // Bilgiler artık localStorage yerine sessionStorage üzerinde tutuluyor.
+                // Bu sayede tarayıcı sekmesi veya penceresi kapatıldığında oturum otomatik sonlanır.
+                sessionStorage.setItem("token", data.token);
+                sessionStorage.setItem("isLoggedIn", "true");
+                sessionStorage.setItem("userName", kullaniciAdi);
 
                 navigate("/");
                 window.location.reload();
@@ -43,7 +42,7 @@ export default function GirisYap() {
     return (
         <div className="min-h-[calc(100vh-80px)] flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-cyan-50/30 relative overflow-hidden">
 
-            {/* Arka Plan Animasyonları - Kesinlikle dokunulmadı */}
+            {/* Arka Plan Animasyonları */}
             <div className="absolute top-1/4 -left-12 w-48 h-48 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-[blob_7s_infinite]"></div>
             <div className="absolute bottom-1/4 -right-12 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-[blob_7s_infinite]" style={{ animationDelay: '2s' }}></div>
 
@@ -90,12 +89,7 @@ export default function GirisYap() {
                             />
                         </div>
 
-                        <div className="flex items-center px-2">
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" className="w-4 h-4 rounded border-cyan-200 text-cyan-600 focus:ring-cyan-500" />
-                                <span className="text-xs font-medium text-slate-500 group-hover:text-cyan-700 transition-colors">Oturumu Açık Tut</span>
-                            </label>
-                        </div>
+                        {/* "Oturumu Açık Tut" seçeneği isteğiniz üzerine kaldırıldı veya işlevsiz bırakılabilir */}
 
                         <button
                             type="submit"
@@ -118,5 +112,4 @@ export default function GirisYap() {
             </div>
         </div>
     );
-
 }

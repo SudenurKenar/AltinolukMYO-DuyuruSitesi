@@ -15,7 +15,9 @@ export default function Baslik() {
     };
 
     useEffect(() => {
-        setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
+        // Sayfa yüklendiğinde oturum durumunu sessionStorage'dan oku
+        setIsLoggedIn(sessionStorage.getItem("isLoggedIn") === "true");
+
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsDropdownOpen(false);
         };
@@ -24,7 +26,8 @@ export default function Baslik() {
     }, []);
 
     const handleLogout = () => {
-        localStorage.clear();
+        // Çıkış yapıldığında sadece o oturuma ait verileri temizle
+        sessionStorage.clear();
         setIsLoggedIn(false);
         navigate("/");
         window.location.reload();
@@ -41,7 +44,7 @@ export default function Baslik() {
                     {/* Logo Alanı */}
                     <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => navigate("/")}>
                         <div className="w-12 h-12 flex items-center justify-center bg-white rounded-xl shadow-sm border border-cyan-50">
-                            <img src={logo} alt="Altınoluk MYO Logo - Aykut Durgut Bilgisayar Programcılığı" className="w-full h-full object-contain p-1" />
+                            <img src={logo} alt="Logo" className="w-full h-full object-contain p-1" />
                         </div>
                         <div className="flex flex-col">
                             <h1 className="text-lg md:text-xl font-bold text-cyan-900 leading-none">ALTINOLUK <span className="text-cyan-600">MYO</span></h1>
@@ -59,7 +62,7 @@ export default function Baslik() {
                             <a href={links.insta} target="_blank" rel="noopener noreferrer" className={navItemStyle}>İletişim</a>
                         </nav>
 
-                        {/* Yönetici Girişi */}
+                        {/* Yönetici Girişi / Paneli */}
                         <div className="relative hidden lg:block" ref={dropdownRef}>
                             {isLoggedIn ? (
                                 <>
