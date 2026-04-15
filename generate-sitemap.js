@@ -25,8 +25,6 @@ async function generate() {
     // Ödev Gönder - Öğrenciler için kritik sayfa
     smStream.write({ url: '/OdevGonder', changefreq: 'monthly', priority: 0.8 });
 
-    // DİKKAT: /arsiv ve /admin sayfaları SEO'ya dahil edilmemiştir. 
-    // Çünkü bu odalar sarayın mahremidir, Google botlarına kapalıdır.
 
     // --- 2. DİNAMİK DUYURU LİNKLERİ (Opsiyonel) ---
     // Eğer duyuru detaylarınızın (slug ile olanlar) taranmasını istiyorsanız
