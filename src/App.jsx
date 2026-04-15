@@ -6,7 +6,6 @@ import Admin from "./Sayfalar/Admin";
 import AdminLayout from "./Layouts/AdminLayout";
 import SayfaBulunamadi from "./Sayfalar/SayfaBulunamadi";
 import Arsiv from "./Sayfalar/Arsiv";
-import KategoriYonetimi from "./Sayfalar/KategoriYonetimi";
 import DuyuruDetay from "./Sayfalar/DuyuruDetay";
 import OdevGonder from "./Sayfalar/OdevGonder";
 import AdminOdevler from "./Sayfalar/AdminOdevler";
@@ -30,7 +29,6 @@ function App() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Admin />} />
         <Route path="arsiv" element={<Arsiv />} />
-        <Route path="kategori" element={<KategoriYonetimi />} />
         <Route path="odevler" element={<AdminOdevler />} />
         <Route path="*" element={<SayfaBulunamadi />} />
       </Route>

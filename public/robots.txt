@@ -1,0 +1,19 @@
+# Tüm arama motoru botlarına hitap ediyoruz
+User-agent: *
+
+# Botların girmesini istemediğimiz, sistemin mutfağı olan alanlar
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /giris
+
+# Botların özellikle tarayıp dizine eklemesini istediğimiz asil alanlar
+Allow: /
+Allow: /detay/
+Allow: /OdevGonder
+
+# Tarama bütçesini korumak için gereksiz dosyaları gizleyebiliriz
+Disallow: /src/
+Disallow: /node_modules/
+
+# Sizin asil alan adınızla mühürlenmiş site haritası
+Sitemap: https://altinolukmyo.aykutdurgut.com.tr/sitemap.xml

@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 
-// --- MULTER AYARLARI ---
+// --- MULTER YAPILANDIRMASI ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadPath = path.join(__dirname, 'uploads');
@@ -33,126 +33,99 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // ==========================================
-// STATİK DOSYA SUNUMU (GÜVENLİ ÖN İZLEME AYARI)
+// STATİK DOSYA SUNUMU VE ÖN İZLEME PROTOKOLÜ
 // ==========================================
-// Tarayıcının dosyayı indirmeyip açması için Content-Type ve Content-Disposition ayarları yapıldı.
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     setHeaders: (res, filePath) => {
         const ext = path.extname(filePath).toLowerCase();
-
-        // Güvenlik Başlıkları
         res.set('X-Content-Type-Options', 'nosniff');
         res.set('Content-Security-Policy', "default-src 'self'");
-
-        // 'inline' komutu: "İndirme, tarayıcı içinde göster" emridir.
         res.set('Content-Disposition', 'inline');
 
-        // Tarayıcıya dosyanın ne olduğunu açıkça söylüyoruz
         const mimeTypes = {
             '.pdf': 'application/pdf',
             '.jpg': 'image/jpeg',
             '.jpeg': 'image/jpeg',
-            '.png': 'image/image/png',
-            '.txt': 'text/plain',
-            '.html': 'text/html'
+            '.png': 'image/png',
+            '.txt': 'text/plain'
         };
-
-        if (mimeTypes[ext]) {
-            res.set('Content-Type', mimeTypes[ext]);
-        }
+        if (mimeTypes[ext]) res.set('Content-Type', mimeTypes[ext]);
     }
 }));
 
 // ==========================================
-// 1. BİLDİRİ ROTALARI (CRUD)
+// 1. DUYURU VE MESAJ YÖNETİMİ (KATEGORİSİZ)
 // ==========================================
 app.get('/api/mesajlar', async (req, res) => {
     try {
         const query = `
-            SELECT m.id, m.baslik, m.aciklama, m.atistarihi, m.mesajturu_id, m.kategori_id,
-                   t.tur as mesaj_turu, k.ad as kategori_adi
+            SELECT m.id, m.baslik, m.aciklama, m.atistarihi, m.mesajturu_id,
+                   t.tur as mesaj_turu
             FROM mesaj m
             LEFT JOIN mesajturu t ON m.mesajturu_id = t.id
-            LEFT JOIN kategori k ON m.kategori_id = k.id
             ORDER BY m.atistarihi DESC`;
         const queryResult = await db.query(query);
         res.status(200).json(queryResult.rows);
-    } catch (error) {
-        res.status(500).json([]);
-    }
+    } catch (error) { res.status(500).json([]); }
 });
 
 app.post('/api/mesaj-ekle', async (req, res) => {
-    const { baslik, aciklama, mesajturu_id, kategori_id } = req.body;
+    const { baslik, aciklama, mesajturu_id } = req.body;
     try {
-        const query = 'INSERT INTO mesaj (baslik, aciklama, mesajturu_id, kategori_id) VALUES ($1, $2, $3, $4) RETURNING *';
-        const result = await db.query(query, [baslik, aciklama, mesajturu_id, kategori_id]);
+        const query = 'INSERT INTO mesaj (baslik, aciklama, mesajturu_id) VALUES ($1, $2, $3) RETURNING *';
+        const result = await db.query(query, [baslik, aciklama, mesajturu_id]);
         res.status(201).json({ success: true, data: result.rows[0] });
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
 // ==========================================
-// 2. KATEGORİ VE MESAJ TURU ROTALARI
+// 2. STATÜ YÖNETİMİ
 // ==========================================
-app.get('/api/kategori', async (req, res) => {
-    try {
-        const result = await db.query('SELECT * FROM kategori ORDER BY ad ASC');
-        res.status(200).json(result.rows);
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
-});
-
 app.get('/api/mesajturu', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM mesajturu ORDER BY id ASC');
         res.status(200).json(result.rows);
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
 // ==========================================
-// 3. ÖDEV SİSTEMİ
+// 3. ÖDEV ARŞİV SİSTEMİ
 // ==========================================
-
 app.get('/api/odevler', async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM odev ORDER BY yukleme_tarihi DESC');
-        res.status(200).json(result.rows);
+        const result = await db.query('SELECT * FROM odev ORDER BY yuktarihi DESC');
+        res.status(200).json(result.rows || []);
     } catch (error) {
-        console.error("Ödev listeleme hatası:", error);
-        res.status(500).json({ success: false });
+        console.error("Arşiv listeleme hatası:", error);
+        res.status(500).json([]);
     }
 });
 
 app.post('/api/odevler', upload.single('odev_dosyasi'), async (req, res) => {
     const { no, isim, soyisim, ders, aciklama } = req.body;
-    const dosya_yolu = req.file ? `/uploads/${req.file.filename}` : null;
+    const dosyolu = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (!no || no.length < 12 || !isim || !soyisim || !ders || !dosyolu) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ success: false, message: "Veri doğrulama hatası." });
+    }
 
     try {
         const query = `
-            INSERT INTO odev (isim, soyisim, no, ders, aciklama, dosya_yolu, yukleme_tarihi) 
+            INSERT INTO odev (isim, soyisim, no, ders, aciklama, dosyolu, yuktarihi) 
             VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP) 
             RETURNING *`;
 
-        const result = await db.query(query, [isim, soyisim, no, ders || 'Genel', aciklama || '', dosya_yolu]);
-
-        res.status(201).json({
-            success: true,
-            message: "Ödev arşive mühürlendi Hanımım.",
-            data: result.rows[0]
-        });
+        const result = await db.query(query, [isim, soyisim, no, ders, aciklama || '', dosyolu]);
+        res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
-        console.error("ÖDEV KAYIT HATASI:", error);
-        res.status(500).json({ success: false, error: error.message });
+        if (req.file) fs.unlinkSync(req.file.path);
+        res.status(500).json({ success: false, error: "Sunucu mühürleme hatası." });
     }
 });
 
 // ==========================================
-// 4. ADMİN GİRİŞ
+// 4. ADMİNİSTRASYON GİRİŞİ
 // ==========================================
 app.post('/api/admin/login', async (req, res) => {
     const { id, sifre } = req.body;
@@ -162,11 +135,9 @@ app.post('/api/admin/login', async (req, res) => {
             const token = jwt.sign({ id: result.rows[0].id }, JWT_SECRET, { expiresIn: '24h' });
             res.status(200).json({ success: true, token });
         } else {
-            res.status(401).json({ success: false, message: "Hatalı giriş." });
+            res.status(401).json({ success: false, message: "Geçersiz kimlik bilgileri." });
         }
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
 app.listen(PORT, () => {
