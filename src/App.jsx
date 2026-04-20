@@ -9,6 +9,7 @@ import Arsiv from "./Sayfalar/Arsiv";
 import DuyuruDetay from "./Sayfalar/DuyuruDetay";
 import OdevGonder from "./Sayfalar/OdevGonder";
 import AdminOdevler from "./Sayfalar/AdminOdevler";
+import AdminDersler from "./Sayfalar/AdminDersler";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route index element={<Admin />} />
         <Route path="arsiv" element={<Arsiv />} />
         <Route path="odevler" element={<AdminOdevler />} />
+        <Route path="dersler" element={<AdminDersler />} />
         <Route path="*" element={<SayfaBulunamadi />} />
       </Route>
     </Routes>

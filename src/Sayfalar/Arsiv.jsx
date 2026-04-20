@@ -70,8 +70,12 @@ export default function Arsiv() {
                 mesaj="Bu bildiriyi sistemden ebediyen silmek istediğinize emin misiniz Hanımım? Bu işlem geri alınamaz."
             />
 
-            <h3 className="text-2xl font-bold text-slate-700 mb-2 tracking-tight">Bildiri Arşivi</h3>
-            <p className="text-sm text-slate-500 mb-8 font-medium">Sistemdeki tüm bildirileri buradan inceleyebilir, düzenleyebilir veya silebilirsiniz.</p>
+            <div className="mb-10">
+                <h2 className="text-3xl font-black text-[#1e3a5a] italic tracking-tighter">
+                    BİLDİRİ YÖNETİM <span className="text-cyan-600 not-italic font-light">PANELİ</span>
+                </h2>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2">Eski bildiri kayıtları</p>
+            </div>
 
             {mesajlar.length === 0 ? (
                 <div className="text-center py-16 bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 font-medium text-lg italic">

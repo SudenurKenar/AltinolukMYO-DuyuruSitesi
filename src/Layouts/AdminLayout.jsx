@@ -6,17 +6,18 @@ import AltBilgi from '../Components/AltBilgi';
 
 export default function AdminLayout() {
     const navigate = useNavigate();
-    const [isChecking, setIsChecking] = useState(true); // Kontrol ediliyor mu?
+    const [isChecking, setIsChecking] = useState(true);
+
+    // --- YENİ: Panelin açık/kapalı durumunu kontrol eden devlet sırrı (State) ---
+    // Masaüstünde varsayılan olarak açık (true) başlasın.
+    const [panelAcik, setPanelAcik] = useState(true);
 
     useEffect(() => {
-        // sessionStorage kontrolü yapıyoruz
         const isLoggedIn = sessionStorage.getItem("isLoggedIn");
 
         if (!isLoggedIn) {
-            // Giriş yoksa anında yönlendir ve kontrolü bitirme (sayfa render olmasın)
             navigate("/giris", { replace: true });
         } else {
-            // Giriş varsa yükleme durumunu kapat ve içeriği göster
             setIsChecking(false);
         }
     }, [navigate]);
@@ -26,7 +27,7 @@ export default function AdminLayout() {
     }
 
     return (
-        <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+        <div className="flex flex-col md:flex-row h-screen bg-slate-50 font-sans overflow-hidden">
             <Toaster
                 position="top-center"
                 toastOptions={{
@@ -35,9 +36,12 @@ export default function AdminLayout() {
                 }}
             />
 
-            <APanel />
-            <div className="flex flex-col flex-1 overflow-y-auto custom-scrollbar">
-                <main className="flex-1 p-6 md:p-10">
+            {/* Yan Menü (APanel) - Durumu ve değiştirme yetkisini menüye iletiyoruz */}
+            <APanel panelAcik={panelAcik} setPanelAcik={setPanelAcik} />
+
+            {/* Ana İçerik Alanı - Panel daraldığında flex-1 sayesinde otomatik olarak ekranı kaplayıp ortalar */}
+            <div className="flex flex-col flex-1 overflow-y-auto custom-scrollbar w-full transition-all duration-500 ease-in-out">
+                <main className="flex-1 p-4 sm:p-6 md:p-10">
                     <Outlet />
                 </main>
                 <AltBilgi />

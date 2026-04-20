@@ -1,5 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DuyuruKarti from '../Components/DuyuruKarti';
+
+// Her bir duyuru kartını ekrana girdikçe süzülerek getiren Lazy Load bileşeni
+const LazyDuyuru = ({ b, borderClass, btnHoverClass }) => {
+    const [gorunurMu, setGorunurMu] = useState(false);
+    const kartRef = useRef(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setGorunurMu(true);
+                    observer.unobserve(kartRef.current);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (kartRef.current) observer.observe(kartRef.current);
+
+        return () => {
+            if (kartRef.current) observer.unobserve(kartRef.current);
+        };
+    }, []);
+
+    return (
+        <div
+            ref={kartRef}
+            className={`transition-all duration-700 ease-out transform ${gorunurMu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+        >
+            {gorunurMu ? (
+                <DuyuruKarti b={b} borderClass={borderClass} btnHoverClass={btnHoverClass} />
+            ) : (
+                <div className="h-32 bg-slate-50/50 animate-pulse rounded-2xl m-4" />
+            )}
+        </div>
+    );
+};
 
 const SayfaNavigasyonu = ({ toplam, mevcut, setSayfa, aktifRenk, duyuruBasina, mobilFiltre }) => {
     const sayfaSayisi = Math.ceil(toplam / duyuruBasina) || 1;
@@ -42,7 +80,6 @@ export default function Anasayfa() {
             .catch(() => setBildiriler([]));
     }, []);
 
-    // Kategorisiz filtreleme: Sadece mesaj türüne (Sürekli/Güncel) göre ayrım yapılır
     const filtrele = (tur) => (bildiriler || []).filter(b => b.mesaj_turu && b.mesaj_turu.trim() === tur);
     const surekli = filtrele("Sürekli");
     const guncel = filtrele("Güncel");
@@ -67,7 +104,7 @@ export default function Anasayfa() {
                     <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-white shadow-sm min-h-[400px]">
                         {sayfaKes(surekli, surekliSayfa).length > 0 ? (
                             sayfaKes(surekli, surekliSayfa).map(b => (
-                                <DuyuruKarti key={b.id} b={b} borderClass="bg-cyan-600" btnHoverClass="hover:bg-cyan-600 hover:text-white" />
+                                <LazyDuyuru key={b.id} b={b} borderClass="bg-cyan-600" btnHoverClass="hover:bg-cyan-600 hover:text-white" />
                             ))
                         ) : (
                             <div className="p-10 text-center text-slate-300 italic text-sm">Arşivde sürekli duyuru bulunamadı.</div>
@@ -85,7 +122,7 @@ export default function Anasayfa() {
                     <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-white shadow-sm min-h-[400px]">
                         {sayfaKes(guncel, guncelSayfa).length > 0 ? (
                             sayfaKes(guncel, guncelSayfa).map(b => (
-                                <DuyuruKarti key={b.id} b={b} borderClass="bg-cyan-700" btnHoverClass="hover:bg-cyan-700 hover:text-white" />
+                                <LazyDuyuru key={b.id} b={b} borderClass="bg-cyan-700" btnHoverClass="hover:bg-cyan-700 hover:text-white" />
                             ))
                         ) : (
                             <div className="p-10 text-center text-slate-300 italic text-sm">Arşivde güncel duyuru bulunamadı.</div>
