@@ -20,7 +20,7 @@ export default function AdminDersler() {
 
     const dersleriGetir = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/dersler');
+            const res = await axios.get('http://localhost:5000/api/sktkdersler');
             setDersler(res.data);
         } catch (error) {
             toast.error("Veritabanı listesi yüklenemedi.");
@@ -32,7 +32,7 @@ export default function AdminDersler() {
         if (!yeniDers.trim()) return toast.error("Ders tanımı boş bırakılamaz.");
         setYukleniyor(true);
         try {
-            const res = await axios.post('http://localhost:5000/api/ders-ekle', { ders: yeniDers });
+            const res = await axios.post('http://localhost:5000/api/sktkders-ekle', { ders: yeniDers });
             if (res.data.success) {
                 toast.success("Ders başarıyla kaydedildi.");
                 setYeniDers('');
@@ -45,7 +45,7 @@ export default function AdminDersler() {
     const durumDegistir = async (id, mevcutDurum) => {
         try {
             const yeniDurum = !mevcutDurum;
-            const res = await axios.patch(`http://localhost:5000/api/dersler/${id}/durum`, { durum: yeniDurum });
+            const res = await axios.patch(`http://localhost:5000/api/sktkdersler/${id}/durum`, { durum: yeniDurum });
             if (res.status === 200) {
                 toast.success(yeniDurum ? "Ders aktif edildi." : "Ders pasif duruma getirildi.");
                 dersleriGetir();
@@ -60,7 +60,7 @@ export default function AdminDersler() {
 
     const dersSil = async () => {
         try {
-            const res = await axios.delete(`http://localhost:5000/api/dersler/${silinecekId}`);
+            const res = await axios.delete(`http://localhost:5000/api/sktkdersler/${silinecekId}`);
             if (res.data.success) {
                 toast.success("Ders resmi kayıtlardan silindi.");
                 setSilmeModaliAcik(false);
@@ -71,7 +71,7 @@ export default function AdminDersler() {
 
     const dersGuncelle = async (id) => {
         try {
-            await axios.put(`http://localhost:5000/api/dersler/${id}`, { ders: duzenlemeMetni });
+            await axios.put(`http://localhost:5000/api/sktkdersler/${id}`, { ders: duzenlemeMetni });
             setDuzenlemeId(null);
             dersleriGetir();
             toast.success("Ders bilgisi güncellendi.");

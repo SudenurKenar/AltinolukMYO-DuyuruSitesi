@@ -74,7 +74,7 @@ export default function Anasayfa() {
     const duyuruBasina = 10;
 
     useEffect(() => {
-        fetch("http://localhost:5000/api/mesajlar")
+        fetch("http://localhost:5000/api/sktkmesajlar")
             .then(res => res.json())
             .then(data => setBildiriler(Array.isArray(data) ? data : []))
             .catch(() => setBildiriler([]));

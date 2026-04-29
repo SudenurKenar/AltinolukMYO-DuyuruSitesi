@@ -7,7 +7,7 @@ export default function AdminOdevler() {
     const [seciliPdf, setSeciliPdf] = useState(null);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/odevler')
+        fetch('http://localhost:5000/api/sktkodevler')
             .then(res => res.json())
             .then(data => {
                 setOdevler(Array.isArray(data) ? data : []);

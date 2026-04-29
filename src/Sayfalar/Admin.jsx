@@ -20,7 +20,7 @@ export default function Admin() {
     useEffect(() => {
         const fetchVeriler = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/mesajturu");
+                const res = await fetch("http://localhost:5000/api/sktkmesajturu");
                 setMesajTurleri(await res.json());
             } catch (error) {
                 toast.error("Sistem verileri yüklenirken bir sorun oluştu.");
@@ -46,8 +46,8 @@ export default function Admin() {
         if (!mesajTuruId) return toast.error("Lütfen bildiri statüsünü seçiniz.");
 
         const url = duzenlemeModu
-            ? `http://localhost:5000/api/mesaj-duzenle/${duzenlenecekId}`
-            : "http://localhost:5000/api/mesaj-ekle";
+            ? `http://localhost:5000/api/sktkmesaj-duzenle/${duzenlenecekId}`
+            : "http://localhost:5000/api/sktkmesaj-ekle";
 
         const method = duzenlemeModu ? "PUT" : "POST";
         const toastId = toast.loading(duzenlemeModu ? 'Değişiklikler işleniyor...' : 'Bildiri yayınlanıyor...');

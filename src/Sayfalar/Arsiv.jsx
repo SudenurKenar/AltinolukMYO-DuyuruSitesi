@@ -17,7 +17,7 @@ export default function Arsiv() {
 
     const fetchBildiriler = async () => {
         try {
-            const msjRes = await fetch("http://localhost:5000/api/mesajlar");
+            const msjRes = await fetch("http://localhost:5000/api/sktkmesajlar");
             const msjData = await msjRes.json();
             // Veritabanından gelen kategorisiz veriyi state'e aktarıyoruz
             setMesajlar(msjData);
@@ -40,7 +40,7 @@ export default function Arsiv() {
         if (!silinecekId) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/mesaj-sil/${silinecekId}`, {
+            const response = await fetch(`http://localhost:5000/api/sktkmesaj-sil/${silinecekId}`, {
                 method: 'DELETE',
             });
 

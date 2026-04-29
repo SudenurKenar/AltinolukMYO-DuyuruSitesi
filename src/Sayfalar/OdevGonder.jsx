@@ -24,7 +24,7 @@ export default function OdevGonder() {
     useEffect(() => {
         const dersleriGetir = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/dersler');
+                const res = await axios.get('http://localhost:5000/api/sktkdersler');
                 const aktifDersler = res.data.filter(d => d.durum === true || d.durum === 1);
                 setDersListesi(aktifDersler);
             } catch (error) {
@@ -138,7 +138,7 @@ export default function OdevGonder() {
         const toastId = toast.loading("Ödeviniz saraya teslim ediliyor...");
 
         try {
-            const res = await axios.post('http://localhost:5000/api/odevler', formData);
+            const res = await axios.post('http://localhost:5000/api/sktkodevler', formData);
 
             if (res.data.success) {
                 toast.success("Ödev başarıyla mühürlendi.", { id: toastId });

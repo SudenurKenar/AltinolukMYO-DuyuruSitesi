@@ -9,7 +9,7 @@ export default function DuyuruDetay() {
     const [detay, setDetay] = useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:5000/api/mesajlar`)
+        fetch(`http://localhost:5000/api/sktkmesajlar`)
             .then(res => res.json())
             .then(data => {
                 // URL'den gelen ID ile eşleşen duyuruyu buluyoruz
