@@ -14,11 +14,26 @@ jobs:
       - name: Kodları Getir
         uses: actions/checkout@v3
 
+      - name: Node.js Kur
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build Et
+        run: |
+          npm install
+          npm run build
+
       - name: Sunucuya Aktar (FTP)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: 91.142.130.114
           username: almyo
           password: altinolukmyo
-          server-dir: /www/wwwroot/almyo_proje/ 
-          delete-removed: false
+          # Yereldeki dist klasörünü hedefliyoruz
+          local-dir: ./dist/ 
+          # Sunucudaki TAM YOLU veriyoruz ki başka klasör aramasın
+          server-dir: /www/wwwroot/tk/
+          # Hataları minimize etmek için bu ayarları ekledim:
+          protocol: ftp
+          dangerous-clean-slate: false
