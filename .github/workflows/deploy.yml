@@ -32,8 +32,8 @@ jobs:
           password: altinolukmyo
           local-dir: ./dist/ 
           server-dir: /www/wwwroot/tk/
-          # Yeni eklenen kritik satırlar:
+          # Hataları engellemek için şu ayarları ekliyoruz:
           protocol: ftp
+          # Alt klasör oluşturma sorunlarını aşmak için pasif modu ve zaman aşımını yönetir:
           dry-run: false
-          # Klasör oluşturma hatalarını minimize eder:
           dangerous-clean-slate: false
