@@ -30,10 +30,10 @@ jobs:
           server: 91.142.130.114
           username: almyo
           password: altinolukmyo
-          # Yereldeki dist klasörünü hedefliyoruz
           local-dir: ./dist/ 
-          # Sunucudaki TAM YOLU veriyoruz ki başka klasör aramasın
           server-dir: /www/wwwroot/tk/
-          # Hataları minimize etmek için bu ayarları ekledim:
+          # Yeni eklenen kritik satırlar:
           protocol: ftp
+          dry-run: false
+          # Klasör oluşturma hatalarını minimize eder:
           dangerous-clean-slate: false
