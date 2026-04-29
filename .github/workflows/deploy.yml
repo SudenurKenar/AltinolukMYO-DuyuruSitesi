@@ -31,7 +31,7 @@ jobs:
           username: almyo
           password: altinolukmyo
           local-dir: ./dist/ 
-          server-dir: /www/wwwroot/tk/
+          server-dir: /www/wwwroot/tk
           # Hataları engellemek için şu ayarları ekliyoruz:
           protocol: ftp
           # Alt klasör oluşturma sorunlarını aşmak için pasif modu yönetir
