@@ -1,0 +1,24 @@
+name: ALMYO Sunucu Dağıtımı
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: FTP ile Dosya Gönderimi
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Kodları Getir
+        uses: actions/checkout@v3
+
+      - name: Sunucuya Aktar (FTP)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: 91.142.130.114
+          username: almyo
+          password: altinolukmyo
+          server-dir: /www/wwwroot/almyo_proje/ 
+          delete-removed: false
