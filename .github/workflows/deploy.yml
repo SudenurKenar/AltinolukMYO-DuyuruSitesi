@@ -32,3 +32,4 @@ jobs:
           password: altinolukmyo
           local-dir: ./dist/ 
           server-dir: /www/wwwroot/tk/
+          
