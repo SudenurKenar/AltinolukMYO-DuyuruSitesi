@@ -73,7 +73,7 @@ export default function OdevGonder() {
         }
 
         if (secilenDosya.size > 200 * 1024 * 1024) {
-            toast.error("Dosya boyutu 200MB sınırını aşamaz Hanımım!", { id: 'boyut-hatasi' });
+            toast.error("Dosya boyutu 200MB sınırını aşamaz!", { id: 'boyut-hatasi' });
             setDosya(null);
             return;
         }

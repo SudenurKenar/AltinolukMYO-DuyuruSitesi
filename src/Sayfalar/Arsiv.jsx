@@ -67,7 +67,7 @@ export default function Arsiv() {
                 kapat={() => setModalAcik(false)}
                 onayla={handleGercekSilme}
                 baslik="Kaydı Siliyorsunuz"
-                mesaj="Bu bildiriyi sistemden ebediyen silmek istediğinize emin misiniz Hanımım? Bu işlem geri alınamaz."
+                mesaj="Bu bildiriyi sistemden ebediyen silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
             />
 
             <div className="mb-10">

@@ -188,6 +188,57 @@ app.post('/api/sktkadmin/login', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
+// ==========================================
+// 4. SABİT LİNKLER SİSTEMİ (sktklinkler Eklendi)
+// ==========================================
+
+/**
+ * Ana sayfadaki İletişim (link1) ve Rapor Formatı (link2) 
+ * butonlarının adreslerini getirir.
+ */
+app.get('/api/sktklinkler', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM sktklinkler WHERE id = 1');
+        if (result.rows.length > 0) {
+            res.status(200).json(result.rows[0]);
+        } else {
+            res.status(404).json({ success: false, message: "Link kayıtları bulunamadı." });
+        }
+    } catch (error) {
+        console.error("Link çekme hatası:", error);
+        res.status(500).json({ success: false, message: "Veritabanı erişim hatası." });
+    }
+});
+
+/**
+ * Admin panelinden gelen yeni linkleri günceller.
+ */
+app.put('/api/sktklinkler-guncelle', async (req, res) => {
+    const { link1, link2 } = req.body;
+
+    try {
+        const query = `
+            UPDATE sktklinkler 
+            SET link1 = $1, link2 = $2 
+            WHERE id = 1 
+            RETURNING *`;
+        const result = await db.query(query, [link1, link2]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({
+                success: true,
+                message: "Linkler başarıyla güncellendi.",
+                data: result.rows[0]
+            });
+        } else {
+            res.status(404).json({ success: false, message: "Güncellenecek kayıt bulunamadı." });
+        }
+    } catch (error) {
+        console.error("Link güncelleme hatası:", error);
+        res.status(500).json({ success: false, message: "Güncelleme sırasında bir hata oluştu." });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`| SUNUCU AKTİF: http://localhost:${PORT} |`);
 });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Archive, GraduationCap, BookOpen, ArrowLeft, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Archive, GraduationCap, BookOpen, ArrowLeft, Menu, X, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 
 export default function APanel({ panelAcik, setPanelAcik }) {
     const location = useLocation();
@@ -51,16 +51,33 @@ export default function APanel({ panelAcik, setPanelAcik }) {
                 </button>
 
                 {/* Logo Alanı */}
-                <div className={`p-6 border-b border-cyan-50 transition-all ${panelAcik ? 'text-left' : 'text-center px-2'}`}>
-                    <h2 className="text-xl font-black text-cyan-900 tracking-tight whitespace-nowrap overflow-hidden">
+                <div className={`p-6 border-b border-cyan-50 transition-all duration-500 ${panelAcik ? 'text-left' : 'text-center px-2'}`}>
+                    <div className="flex items-center justify-center min-h-[48px]">
                         {panelAcik ? (
-                            <>Yönetim <span className="text-cyan-600">Paneli</span></>
+                            <h2 className="text-xl font-black text-cyan-900 tracking-tight whitespace-nowrap overflow-hidden animate-in fade-in slide-in-from-left-2 duration-500">
+                                Yönetim <span className="text-cyan-600">Paneli</span>
+                                <div className="h-1 w-8 bg-cyan-500 rounded-full mt-1"></div>
+                            </h2>
                         ) : (
-                            <span className="text-cyan-600">YP</span>
+                            /* KÜÇÜLEN EKRAN LOGOSU - YENİ TASARIM */
+                            <div className="relative group cursor-pointer flex items-center justify-center">
+                                {/* Dış Çerçeve */}
+                                <div className="w-11 h-11 border-2 border-cyan-100 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:border-cyan-500 group-hover:rotate-45">
+                                    {/* İç Dolgu Amblem */}
+                                    <div className="w-6 h-6 bg-cyan-600 rounded-lg shadow-lg shadow-cyan-200 flex items-center justify-center transition-all duration-500 group-hover:-rotate-45 group-hover:bg-cyan-700">
+                                        {/* En İçteki Beyaz Nokta/Çekirdek */}
+                                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                    </div>
+                                </div>
+
+                                {/* Arka Plan Glow Efekti (Sadece Hover'da) */}
+                                <div className="absolute inset-0 bg-cyan-400 blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
+                            </div>
                         )}
-                    </h2>
+                    </div>
+
                     {panelAcik && (
-                        <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1 truncate">
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-bold mt-2 truncate animate-in fade-in duration-700">
                             Altınoluk MYO
                         </p>
                     )}
@@ -86,6 +103,11 @@ export default function APanel({ panelAcik, setPanelAcik }) {
                     <Link to="/admin/dersler" onClick={() => setMobilAcik(false)} className={linkStili("/admin/dersler")} title="Ders Yönetimi">
                         <BookOpen size={20} className="shrink-0" />
                         {panelAcik && <span className="truncate">Ders Yönetimi</span>}
+                    </Link>
+
+                    <Link to="/admin/linkler" onClick={() => setMobilAcik(false)} className={linkStili("/admin/linkler")} title="Link Yönetimi">
+                        <Settings size={20} className="shrink-0" />
+                        {panelAcik && <span className="truncate">Link Yönetimi</span>}
                     </Link>
                 </nav>
 

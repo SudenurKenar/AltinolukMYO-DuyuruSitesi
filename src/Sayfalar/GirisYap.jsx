@@ -10,7 +10,7 @@ export default function GirisYap() {
         e.preventDefault();
 
         try {
-            const response = await fetch('http://localhost:5000/api/admin/login', {
+            const response = await fetch('http://localhost:5000/api/sktkadmin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -35,7 +35,7 @@ export default function GirisYap() {
             }
         } catch (error) {
             console.error("Hata:", error);
-            alert("Sunucuya bağlanılamadı. Muhafızlar uyuyor olabilir!");
+            alert("Sunucuya bağlanılamadı.");
         }
     };
 
