@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CheckCircle2, AlertCircle, X } from 'lucide-react'; // İkonlar eklendi
 
 export default function GirisYap() {
     const navigate = useNavigate();
     const [kullaniciAdi, setKullaniciAdi] = useState('');
     const [sifre, setSifre] = useState('');
 
+    // Bildirim Durumu
+    const [status, setStatus] = useState({ type: '', message: '' });
+
+    // Bildirimin 5 saniye sonra kendiliğinden kapanması
+    useEffect(() => {
+        if (status.message) {
+            const timer = setTimeout(() => setStatus({ type: '', message: '' }), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [status.message]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setStatus({ type: '', message: '' }); // Yeni girişte eski mesajı temizle
 
         try {
             const response = await fetch('http://localhost:5000/api/sktkadmin/login', {
@@ -22,34 +35,53 @@ export default function GirisYap() {
             const data = await response.json();
 
             if (data.success) {
-                // Bilgiler artık localStorage yerine sessionStorage üzerinde tutuluyor.
-                // Bu sayede tarayıcı sekmesi veya penceresi kapatıldığında oturum otomatik sonlanır.
                 sessionStorage.setItem("token", data.token);
                 sessionStorage.setItem("isLoggedIn", "true");
                 sessionStorage.setItem("userName", kullaniciAdi);
 
-                navigate("/");
-                window.location.reload();
+                setStatus({ type: 'success', message: 'Giriş başarılı, yönlendiriliyorsunuz Hanımım...' });
+
+                setTimeout(() => {
+                    navigate("/");
+                    window.location.reload();
+                }, 1500); // Başarı mesajını görmeniz için kısa bir gecikme
             } else {
-                alert(data.message || "Giriş başarısız!");
+                setStatus({ type: 'error', message: data.message || "Giriş başarısız, bilgilerinizi kontrol edin!" });
             }
         } catch (error) {
-            console.error("Hata:", error);
-            alert("Sunucuya bağlanılamadı.");
+            setStatus({ type: 'error', message: "Sunucuya bağlanılamadı, lütfen sonra tekrar deneyin." });
         }
     };
 
     return (
         <div className="min-h-[calc(100vh-80px)] flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-cyan-50/30 relative overflow-hidden">
 
+            {/* TEPEDEN İNEN BİLDİRİM KUTUSU */}
+            {status.message && (
+                <div className="fixed top-6 left-0 right-0 z-[9999] flex justify-center px-4 pointer-events-none">
+                    <div className={`
+                        pointer-events-auto
+                        flex items-center gap-3 py-4 px-8 rounded-2xl shadow-2xl border
+                        animate-in slide-in-from-top-full duration-500
+                        ${status.type === 'success'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-100'
+                            : 'bg-rose-50 text-rose-800 border-rose-100'}
+                    `}>
+                        {status.type === 'success' ? <CheckCircle2 size={24} className="text-emerald-500" /> : <AlertCircle size={24} className="text-rose-500" />}
+                        <span className="font-black tracking-tight">{status.message}</span>
+                        <button onClick={() => setStatus({ type: '', message: '' })} className="ml-4 p-1 hover:bg-black/5 rounded-full transition-colors">
+                            <X size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Arka Plan Animasyonları */}
             <div className="absolute top-1/4 -left-12 w-48 h-48 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-[blob_7s_infinite]"></div>
             <div className="absolute bottom-1/4 -right-12 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-[blob_7s_infinite]" style={{ animationDelay: '2s' }}></div>
 
             <div className="w-full max-w-md relative z-10 transform transition-all duration-700 ease-out animate-in fade-in slide-in-from-bottom-8">
-
                 <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-2xl rounded-[2.5rem] p-10 overflow-hidden">
-
                     <div className="text-center mb-10">
                         <h2 className="text-3xl font-black text-cyan-900 tracking-tight mb-2">
                             Hoş <span className="text-cyan-600">Geldiniz</span>
@@ -88,8 +120,6 @@ export default function GirisYap() {
                                 required
                             />
                         </div>
-
-                        {/* "Oturumu Açık Tut" seçeneği isteğiniz üzerine kaldırıldı veya işlevsiz bırakılabilir */}
 
                         <button
                             type="submit"

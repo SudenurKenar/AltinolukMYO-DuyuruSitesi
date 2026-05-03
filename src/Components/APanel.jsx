@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Archive, GraduationCap, BookOpen, ArrowLeft, Menu, X, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { LayoutDashboard, Archive, GraduationCap, BookOpen, ArrowLeft, Menu, X, ChevronLeft, ChevronRight, Settings, User } from 'lucide-react';
 
 export default function APanel({ panelAcik, setPanelAcik }) {
     const location = useLocation();
@@ -108,6 +108,11 @@ export default function APanel({ panelAcik, setPanelAcik }) {
                     <Link to="/admin/linkler" onClick={() => setMobilAcik(false)} className={linkStili("/admin/linkler")} title="Link Yönetimi">
                         <Settings size={20} className="shrink-0" />
                         {panelAcik && <span className="truncate">Link Yönetimi</span>}
+                    </Link>
+
+                    <Link to="/admin/profil" onClick={() => setMobilAcik(false)} className={linkStili("/admin/profil")} title="Profil">
+                        <User size={20} className="shrink-0" />
+                        {panelAcik && <span className="truncate">Profil Yönetimi</span>}
                     </Link>
                 </nav>
 

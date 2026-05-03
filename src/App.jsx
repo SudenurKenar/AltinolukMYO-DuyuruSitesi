@@ -11,6 +11,7 @@ import OdevGonder from "./Sayfalar/OdevGonder";
 import AdminOdevler from "./Sayfalar/AdminOdevler";
 import AdminDersler from "./Sayfalar/AdminDersler";
 import LinkYonetimi from "./Sayfalar/LinkYonetimi";
+import AdminProfil from "./Sayfalar/AdminProfil";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
         <Route path="dersler" element={<AdminDersler />} />
         <Route path="linkler" element={<LinkYonetimi />} />
         <Route path="*" element={<SayfaBulunamadi />} />
+        <Route path="profil" element={<AdminProfil />} />
       </Route>
     </Routes>
   );
