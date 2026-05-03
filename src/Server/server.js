@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import db from './db.js';
+import bcrypt from 'bcrypt';
 
 /**
  * Uygulama Yapılandırması ve Küresel Değişkenler
@@ -157,7 +158,7 @@ app.post('/api/sktkodevler', upload.single('odev_dosyasi'), async (req, res) => 
 });
 
 // ==========================================
-// 3. MESAJ VE ADMİN SİSTEMİ - KESİN ÇÖZÜM
+// 3. MESAJ SİSTEMİ
 // ==========================================
 
 app.get('/api/sktkmesajturu', async (req, res) => {
@@ -170,10 +171,9 @@ app.get('/api/sktkmesajturu', async (req, res) => {
     }
 });
 
-// BİLDİRİ LİSTESİ (404 hatasını önlemek için rota ismini kontrol edin)
 app.get('/api/sktkmesajlar', async (req, res) => {
     try {
-        // Tablo adının 'sktkmesaj' olduğundan emin olun
+
         const query = `
             SELECT m.id, m.baslik, m.aciklama, m.atistarihi, m.mesajturu_id, t.tur as mesaj_turu 
             FROM sktkmesaj m 
@@ -187,13 +187,12 @@ app.get('/api/sktkmesajlar', async (req, res) => {
     }
 });
 
-// BİLDİRİ DÜZENLEME (500 hatasını önlemek için sorguyu düzelttik)
 app.put('/api/sktkmesaj-duzenle/:id', async (req, res) => {
     const { id } = req.params;
     const { baslik, aciklama, mesajturu_id } = req.body;
 
     try {
-        // TABLO ADI: sktkmesaj (Eski kodda 'sktkmesajlar' yazıyordu, 500 hatasının sebebi bu!)
+
         const query = `
             UPDATE sktkmesaj 
             SET baslik = $1, aciklama = $2, mesajturu_id = $3 
@@ -213,7 +212,7 @@ app.put('/api/sktkmesaj-duzenle/:id', async (req, res) => {
     }
 });
 
-// 5. BİLDİRİ SİLME (404 Hatasını Kökten Çözer)
+
 app.delete('/api/sktkmesaj-sil/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -245,39 +244,75 @@ app.delete('/api/sktkmesaj-sil/:id', async (req, res) => {
 /// 4. ADMİN GİRİŞ SİSTEMİ     ///
 //////////////////////////////////
 
+// server.js içindeki login rotasının yeni hali
 app.post('/api/sktkadmin/login', async (req, res) => {
     const { id, sifre } = req.body;
     try {
-        const result = await db.query('SELECT * FROM sktkadmin WHERE kullaniciadi = $1 AND sifre = $2', [String(id), String(sifre)]);
+        const result = await db.query('SELECT * FROM sktkadmin WHERE kullaniciadi = $1', [String(id).trim()]);
+
         if (result.rows.length > 0) {
-            const token = jwt.sign({ id: result.rows[0].id }, JWT_SECRET, { expiresIn: '24h' });
-            res.status(200).json({ success: true, token });
+            const admin = result.rows[0];
+            const dbHash = String(admin.sifre).trim();
+
+            // Sadece Bcrypt ile kontrol kalsın
+            const sifreDogruMu = await bcrypt.compare(String(sifre), dbHash);
+
+            if (sifreDogruMu) {
+                const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: '24h' });
+                res.status(200).json({ success: true, token });
+            } else {
+                res.status(401).json({ success: false, message: "Hatalı şifre!" });
+            }
         } else {
-            res.status(401).json({ success: false, message: "Hatalı kullanıcı adı veya şifre!" });
+            res.status(401).json({ success: false, message: "Kullanıcı bulunamadı!" });
         }
-    } catch (error) { res.status(500).json({ success: false }); }
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
 });
 
 app.put('/api/admin-ad-guncelle', async (req, res) => {
     const { eskiAd, yeniAd, dogrulamaSifresi } = req.body;
     try {
         const admin = (await db.query('SELECT * FROM sktkadmin LIMIT 1')).rows[0];
-        if (admin.sifre !== dogrulamaSifresi || admin.kullaniciadi !== eskiAd) {
+
+        // HASH KONTROLÜ: Veritabanındaki hashli şifre ile girilen şifreyi karşılaştırıyoruz
+        const sifreDogruMu = await bcrypt.compare(String(dogrulamaSifresi), admin.sifre);
+
+        if (!sifreDogruMu || admin.kullaniciadi !== eskiAd) {
             return res.status(401).json({ success: false, message: "Bilgiler uyuşmuyor!" });
         }
+
         await db.query('UPDATE sktkadmin SET kullaniciadi = $1 WHERE id = $2', [yeniAd, admin.id]);
         res.json({ success: true, message: "Kullanıcı adınız güncellendi." });
-    } catch (error) { res.status(500).json({ success: false }); }
+    } catch (error) {
+        console.error("Ad güncelleme hatası:", error);
+        res.status(500).json({ success: false });
+    }
 });
 
 app.put('/api/admin-sifre-guncelle', async (req, res) => {
     const { eskiSifre, yeniSifre } = req.body;
     try {
         const admin = (await db.query('SELECT * FROM sktkadmin LIMIT 1')).rows[0];
-        if (admin.sifre !== eskiSifre) return res.status(401).json({ success: false, message: "Eski şifre hatalı!" });
-        await db.query('UPDATE sktkadmin SET sifre = $1 WHERE id = $2', [yeniSifre, admin.id]);
-        res.json({ success: true, message: "Şifreniz değiştirildi." });
-    } catch (error) { res.status(500).json({ success: false }); }
+
+        if (!admin) {
+            return res.status(404).json({ success: false, message: "Yönetici bulunamadı!" });
+        }
+        const eskiDogruMu = await bcrypt.compare(String(eskiSifre), admin.sifre);
+        if (!eskiDogruMu) {
+            return res.status(401).json({ success: false, message: "Mevcut şifreniz hatalı!" });
+        }
+        const hashedYeniSifre = await bcrypt.hash(String(yeniSifre), 10);
+        await db.query('UPDATE sktkadmin SET sifre = $1 WHERE id = $2', [hashedYeniSifre, admin.id]);
+        res.json({
+            success: true,
+            message: "Şifreniz başarıyla mühürlendi ve güncellendi."
+        });
+    } catch (error) {
+        console.error("Şifre Güncelleme Hatası:", error);
+        res.status(500).json({ success: false, message: "Sunucu hatası oluştu." });
+    }
 });
 
 // ==========================================
