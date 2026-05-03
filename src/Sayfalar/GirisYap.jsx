@@ -39,7 +39,7 @@ export default function GirisYap() {
                 sessionStorage.setItem("isLoggedIn", "true");
                 sessionStorage.setItem("userName", kullaniciAdi);
 
-                setStatus({ type: 'success', message: 'Giriş başarılı, yönlendiriliyorsunuz Hanımım...' });
+                setStatus({ type: 'success', message: 'Giriş başarılı, yönlendiriliyorsunuz...' });
 
                 setTimeout(() => {
                     navigate("/");

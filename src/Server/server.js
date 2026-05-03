@@ -97,6 +97,18 @@ app.delete('/api/sktkdersler/:id', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
+app.get('/api/sktkmesajturu', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM sktkmesajturu ORDER BY id ASC');
+
+        // Eğer tablo boşsa bile 404 değil, boş dizi döndürmeliyiz
+        res.status(200).json(result.rows || []);
+    } catch (error) {
+        console.error("Mesaj türü çekme hatası:", error);
+        res.status(500).json({ success: false, message: "Veritabanı hatası." });
+    }
+});
+
 // ==========================================
 // 2. ÖDEV VE ARŞİV SİSTEMİ
 // ==========================================
@@ -164,7 +176,7 @@ app.put('/api/admin-ad-guncelle', async (req, res) => {
             return res.status(401).json({ success: false, message: "Bilgiler uyuşmuyor!" });
         }
         await db.query('UPDATE sktkadmin SET kullaniciadi = $1 WHERE id = $2', [yeniAd, admin.id]);
-        res.json({ success: true, message: "Kullanıcı adınız güncellendi Hanımım." });
+        res.json({ success: true, message: "Kullanıcı adınız güncellendi." });
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
@@ -174,7 +186,7 @@ app.put('/api/admin-sifre-guncelle', async (req, res) => {
         const admin = (await db.query('SELECT * FROM sktkadmin LIMIT 1')).rows[0];
         if (admin.sifre !== eskiSifre) return res.status(401).json({ success: false, message: "Eski şifre hatalı!" });
         await db.query('UPDATE sktkadmin SET sifre = $1 WHERE id = $2', [yeniSifre, admin.id]);
-        res.json({ success: true, message: "Şifreniz değiştirildi Kraliçem." });
+        res.json({ success: true, message: "Şifreniz değiştirildi." });
     } catch (error) { res.status(500).json({ success: false }); }
 });
 

@@ -67,7 +67,7 @@ export default function AdminProfil() {
                 setStatus({ type: 'error', message: data.message });
             }
         } catch (error) {
-            setStatus({ type: 'error', message: 'Sunucuya ulaşılamadı Hanımım!' });
+            setStatus({ type: 'error', message: 'Sunucuya ulaşılamadı!' });
         } finally {
             setLoading(false);
         }
@@ -106,7 +106,7 @@ export default function AdminProfil() {
                     <ShieldCheck className="text-cyan-600" size={32} />
                     Güvenlik <span className="text-cyan-600">Yönetimi</span>
                 </h1>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2 ml-1">Kraliyet muhafızları bilgilerinizi koruyor</p>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2 ml-1">Bilgilerinizi güncelleyebilirsiniz</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -133,7 +133,7 @@ export default function AdminProfil() {
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     if (!sifreGecerliMi(sifreData.yeniSifre)) return setStatus({ type: 'error', message: 'Şifre en az 8 karakter, büyük-küçük harf, rakam ve sembol içermeli!' });
-                    if (sifreData.yeniSifre !== sifreData.yeniSifreTekrar) return setStatus({ type: 'error', message: 'Yeni şifreler eşleşmiyor Kraliçem!' });
+                    if (sifreData.yeniSifre !== sifreData.yeniSifreTekrar) return setStatus({ type: 'error', message: 'Yeni şifreler eşleşmiyor!' });
                     apiGonder('admin-sifre-guncelle', sifreData);
                 }} className="bg-white p-8 rounded-[2.5rem] border border-cyan-100 shadow-sm space-y-6">
                     <h2 className="font-black text-cyan-800 text-base uppercase tracking-tighter border-b pb-3 border-cyan-50 flex items-center gap-2">
