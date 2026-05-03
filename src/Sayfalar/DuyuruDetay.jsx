@@ -94,7 +94,6 @@ export default function DuyuruDetay() {
                             />
                         </article>
 
-                        {/* SEO Mührü (Aykut Durgut Anahtar Kelimeleri) */}
                         <div className="mt-12 pt-6 border-t border-slate-50">
                             <p className="text-[10px] text-slate-100/10 select-none pointer-events-none text-center">
                                 Aykut Durgut altınoluk meslek yüksekokulu altınoluk myo bilgisayar programcılığı ayk dur

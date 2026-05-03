@@ -112,12 +112,18 @@ export default function AdminOdevler() {
     };
 
     const handleDosyaIncele = (dosyaYolu) => {
-        const tamYol = `http://localhost:5000${dosyaYolu}`;
+        if (!dosyaYolu) return toast.error("Dosya yolu bulunamadı!");
+
+        // Eğer yol başında / yoksa biz ekleyelim
+        const temizYol = dosyaYolu.startsWith('/') ? dosyaYolu : `/${dosyaYolu}`;
+        const tamYol = `http://localhost:5000${temizYol}`;
+
         const uzanti = dosyaYolu.split('.').pop().toLowerCase();
 
         if (uzanti === 'pdf') {
-            setSeciliPdf(tamYol);
+            setSeciliPdf(tamYol); // Modal'ı açar
         } else {
+            // PDF dışındakileri (zip, rar) doğrudan indirir
             const link = document.createElement('a');
             link.href = tamYol;
             link.setAttribute('download', dosyaYolu.split('/').pop());
@@ -180,13 +186,36 @@ export default function AdminOdevler() {
 
             {/* PDF MODAL */}
             {seciliPdf && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1e3a5a]/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                /* Dış Karartma ve Arka Plan (z-index 100 ile en üstte) */
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1e3a5a]/40 backdrop-blur-md p-4 animate-in fade-in duration-500">
+
+                    {/* Modal Gövdesi */}
                     <div className="bg-white w-full max-w-5xl h-[90vh] rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative border-8 border-white">
-                        <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center px-8">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Resmi Evrak Ön İzleme</span>
-                            <button onClick={() => setSecPdf(null)} className="bg-white text-slate-600 px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-slate-200 hover:text-rose-600 transition-all active:scale-95 shadow-sm">Kapat</button>
+
+                        {/* Üst Başlık ve Kapatma Çubuğu */}
+                        <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center px-8 shrink-0">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+                                Resmi Evrak Ön İzleme
+                            </span>
+
+                            <button
+                                onClick={() => setSeciliPdf(null)}
+                                className="bg-white text-slate-600 px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-slate-200 hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95 shadow-sm"
+                            >
+                                Kapat
+                            </button>
                         </div>
-                        <iframe src={`${seciliPdf}#toolbar=0`} className="w-full h-full border-none" title="PDF" />
+
+                        {/* Evrak Görüntüleme Alanı */}
+                        <div className="flex-1 bg-slate-100 relative">
+                            <iframe
+                                /* key ekleyerek her yeni dosyada iframe'in sıfırdan temiz yüklenmesini sağlıyoruz */
+                                key={seciliPdf}
+                                src={`${seciliPdf}#toolbar=0&navpanes=0`}
+                                className="w-full h-full border-none absolute inset-0"
+                                title="PDF"
+                            />
+                        </div>
                     </div>
                 </div>
             )}

@@ -12,7 +12,7 @@ const HOSTNAME = 'https://altinolukmyo.aykutdurgut.com.tr';
 async function generate() {
   try {
     const smStream = new SitemapStream({ hostname: HOSTNAME });
-    // Sitemap dosyasını tam olarak public klasörüne mühürlüyoruz
+    // Sitemap dosyasını tam olarak public klasörüne kaydediyoruz
     const writeStream = createWriteStream(path.resolve(__dirname, 'public', 'sitemap.xml'));
     const pipeline = smStream.pipe(writeStream);
 
@@ -35,7 +35,7 @@ async function generate() {
     await streamToPromise(pipeline);
     console.log('✅ Site haritası mahrem odalar korunarak asaletle hazırlandı!');
   } catch (e) {
-    console.error('❌ Harita mühürlenirken bir hata oluştu:', e);
+    console.error('❌ Harita kaydedilirken bir hata oluştu:', e);
   }
 }
 

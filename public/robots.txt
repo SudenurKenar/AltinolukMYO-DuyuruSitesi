@@ -15,5 +15,5 @@ Allow: /OdevGonder
 Disallow: /src/
 Disallow: /node_modules/
 
-# Sizin asil alan adınızla mühürlenmiş site haritası
+# Sizin alan adınızla kaydedilmiş site haritası
 Sitemap: https://altinolukmyo.aykutdurgut.com.tr/sitemap.xml

@@ -111,7 +111,7 @@ export default function AdminDersler() {
             {/* Yönetim Listesi */}
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl overflow-hidden">
                 <div className="overflow-x-auto">
-                    {/* table-fixed ile sütunları mühürledik */}
+                    {/* table-fixed ile sütunları kaydediyoruz */}
                     <table className="w-full text-sm text-left border-collapse table-fixed min-w-[700px]">
                         <thead className="bg-slate-50/50">
                             <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">

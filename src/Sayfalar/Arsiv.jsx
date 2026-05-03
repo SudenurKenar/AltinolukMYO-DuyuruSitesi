@@ -113,7 +113,7 @@ export default function Arsiv() {
             const result = await response.json();
 
             if (result.success) {
-                toast.success("Kayıt sistemden başarıyla kaldırıldı.", { icon: '🔥' });
+                toast.success("Kayıt sistemden başarıyla kaldırıldı.");
                 setMesajlar(mesajlar.filter(m => m.id !== silinecekId));
             } else {
                 toast.error("Silme başarısız: " + result.message);

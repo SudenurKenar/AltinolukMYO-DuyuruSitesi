@@ -58,7 +58,7 @@ export default function OdevGonder() {
         setForm({ ...form, no: value });
     };
 
-    // YENİ: Hem sürükle-bırak hem de normal seçim için ortak dosya denetim protokolü
+    // YENİ: Hem sürükle-bırak nem de normal seçim için ortak dosya denetim protokolü
     const dosyaIsle = (secilenDosya) => {
         if (!secilenDosya) return;
 
@@ -141,7 +141,7 @@ export default function OdevGonder() {
             const res = await axios.post('http://localhost:5000/api/sktkodevler', formData);
 
             if (res.data.success) {
-                toast.success("Ödev başarıyla mühürlendi.", { id: toastId });
+                toast.success("Ödev başarıyla gönderildi.", { id: toastId });
                 setForm({ no: '', isim: '', soyisim: '', ders: '', aciklama: '' });
                 setDosya(null);
                 setYuklemeYuzdesi(0);
@@ -235,6 +235,23 @@ export default function OdevGonder() {
                             ${surukleniyor ? 'border-cyan-500 bg-cyan-100 scale-[1.02] shadow-inner' :
                                 dosya ? 'border-cyan-500 bg-cyan-50/30' : 'border-cyan-100 bg-cyan-50/20'}`}
                     >
+                        {/* Dosya Silme Çarpısı */}
+                        {dosya && !yukleniyor && !dosyaHazirlaniyor && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDosya(null);
+                                    setYuklemeYuzdesi(0);
+                                }}
+                                className="absolute top-3 right-3 p-1.5 bg-red-50 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors z-20"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
+
                         {/* Görünmez arka plan katmanı - Sürüklerken ekstra vurgu için */}
                         {surukleniyor && (
                             <div className="absolute inset-0 bg-cyan-500/5 rounded-2xl pointer-events-none animate-pulse"></div>
@@ -253,7 +270,7 @@ export default function OdevGonder() {
 
                             <input type="file" className="hidden" accept=".pdf,.zip,.rar" onChange={handleFileChange} disabled={yukleniyor || dosyaHazirlaniyor} />
 
-                            {!yukleniyor && !dosyaHazirlaniyor && !surukleniyor && (
+                            {!yukleniyor && !dosyaHazirlaniyor && !surukleniyor && !dosya && (
                                 <div className="inline-block px-8 py-2.5 bg-white border border-cyan-200 rounded-xl text-[10px] font-black text-cyan-600 uppercase tracking-widest hover:bg-cyan-600 hover:text-white transition-all shadow-sm">
                                     Dosya Seç
                                 </div>

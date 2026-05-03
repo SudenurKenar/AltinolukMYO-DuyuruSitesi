@@ -97,15 +97,32 @@ app.delete('/api/sktkdersler/:id', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-app.get('/api/sktkmesajturu', async (req, res) => {
-    try {
-        const result = await db.query('SELECT * FROM sktkmesajturu ORDER BY id ASC');
+app.patch('/api/sktkdersler/:id/durum', async (req, res) => {
+    const { id } = req.params;
+    const { durum } = req.body; // Frontend'den gelen yeni durum (true/false)
 
-        // Eğer tablo boşsa bile 404 değil, boş dizi döndürmeliyiz
-        res.status(200).json(result.rows || []);
+    try {
+        const query = 'UPDATE sktkdersler SET durum = $1 WHERE id = $2 RETURNING *';
+        const result = await db.query(query, [durum, id]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({
+                success: true,
+                message: "Ders durumu başarıyla güncellendi.",
+                data: result.rows[0]
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "Güncellenecek ders bulunamadı."
+            });
+        }
     } catch (error) {
-        console.error("Mesaj türü çekme hatası:", error);
-        res.status(500).json({ success: false, message: "Veritabanı hatası." });
+        console.error("Durum güncelleme hatası:", error);
+        res.status(500).json({
+            success: false,
+            message: "Sunucu hatası oluştu."
+        });
     }
 });
 
@@ -140,16 +157,93 @@ app.post('/api/sktkodevler', upload.single('odev_dosyasi'), async (req, res) => 
 });
 
 // ==========================================
-// 3. MESAJ VE ADMİN SİSTEMİ
+// 3. MESAJ VE ADMİN SİSTEMİ - KESİN ÇÖZÜM
 // ==========================================
 
+app.get('/api/sktkmesajturu', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM sktkmesajturu ORDER BY id ASC');
+        res.status(200).json(result.rows || []);
+    } catch (error) {
+        console.error("Mesaj türü çekme hatası:", error);
+        res.status(500).json({ success: false, message: "Veritabanı hatası." });
+    }
+});
+
+// BİLDİRİ LİSTESİ (404 hatasını önlemek için rota ismini kontrol edin)
 app.get('/api/sktkmesajlar', async (req, res) => {
     try {
-        const query = `SELECT m.id, m.baslik, m.aciklama, m.atistarihi, m.mesajturu_id, t.tur as mesaj_turu FROM sktkmesaj m LEFT JOIN sktkmesajturu t ON m.mesajturu_id = t.id ORDER BY m.atistarihi DESC`;
+        // Tablo adının 'sktkmesaj' olduğundan emin olun
+        const query = `
+            SELECT m.id, m.baslik, m.aciklama, m.atistarihi, m.mesajturu_id, t.tur as mesaj_turu 
+            FROM sktkmesaj m 
+            LEFT JOIN sktkmesajturu t ON m.mesajturu_id = t.id 
+            ORDER BY m.atistarihi DESC`;
         const queryResult = await db.query(query);
         res.status(200).json(queryResult.rows);
-    } catch (error) { res.status(500).json([]); }
+    } catch (error) {
+        console.error("Liste çekme hatası:", error);
+        res.status(500).json([]);
+    }
 });
+
+// BİLDİRİ DÜZENLEME (500 hatasını önlemek için sorguyu düzelttik)
+app.put('/api/sktkmesaj-duzenle/:id', async (req, res) => {
+    const { id } = req.params;
+    const { baslik, aciklama, mesajturu_id } = req.body;
+
+    try {
+        // TABLO ADI: sktkmesaj (Eski kodda 'sktkmesajlar' yazıyordu, 500 hatasının sebebi bu!)
+        const query = `
+            UPDATE sktkmesaj 
+            SET baslik = $1, aciklama = $2, mesajturu_id = $3 
+            WHERE id = $4 
+            RETURNING *`;
+
+        const result = await db.query(query, [baslik, aciklama, mesajturu_id, id]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, data: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Kayıt bulunamadı." });
+        }
+    } catch (error) {
+        console.error("Düzenleme hatası:", error); // Terminalde hatanın detayını görebilirsiniz
+        res.status(500).json({ success: false, message: "Sunucu hatası." });
+    }
+});
+
+// 5. BİLDİRİ SİLME (404 Hatasını Kökten Çözer)
+app.delete('/api/sktkmesaj-sil/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Tablo isminin 'sktkmesaj' olduğundan emin olun
+        const query = 'DELETE FROM sktkmesaj WHERE id = $1 RETURNING *';
+        const result = await db.query(query, [id]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({
+                success: true,
+                message: "Bildiri başarıyla sistemden kaldırıldı."
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "Silinecek kayıt bulunamadı."
+            });
+        }
+    } catch (error) {
+        console.error("Silme hatası:", error);
+        res.status(500).json({
+            success: false,
+            message: "Silme işlemi sırasında sunucu hatası oluştu."
+        });
+    }
+});
+
+//////////////////////////////////
+/// 4. ADMİN GİRİŞ SİSTEMİ     ///
+//////////////////////////////////
 
 app.post('/api/sktkadmin/login', async (req, res) => {
     const { id, sifre } = req.body;
@@ -163,10 +257,6 @@ app.post('/api/sktkadmin/login', async (req, res) => {
         }
     } catch (error) { res.status(500).json({ success: false }); }
 });
-
-// ==========================================
-// 4. ADMİN PROFİL YÖNETİMİ (YENİ EKLENDİ)
-// ==========================================
 
 app.put('/api/admin-ad-guncelle', async (req, res) => {
     const { eskiAd, yeniAd, dogrulamaSifresi } = req.body;
