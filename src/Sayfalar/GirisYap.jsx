@@ -23,7 +23,7 @@ export default function GirisYap() {
         setStatus({ type: '', message: '' }); // Yeni girişte eski mesajı temizle
 
         try {
-            const response = await fetch('http://localhost:5000/api/sktkadmin/login', {
+            const response = await fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkadmin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

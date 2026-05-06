@@ -8,7 +8,6 @@ export default function AdminLayout() {
     const navigate = useNavigate();
     const [isChecking, setIsChecking] = useState(true);
 
-    // --- YENİ: Panelin açık/kapalı durumunu kontrol eden devlet sırrı (State) ---
     // Masaüstünde varsayılan olarak açık (true) başlasın.
     const [panelAcik, setPanelAcik] = useState(true);
 
@@ -36,7 +35,7 @@ export default function AdminLayout() {
                 }}
             />
 
-            {/* Yan Menü (APanel) - Durumu ve değiştirme yetkisini menüye iletiyoruz */}
+            {/* Yan Menü - Durumu ve değiştirme yetkisini menüye iletiyoruz */}
             <APanel panelAcik={panelAcik} setPanelAcik={setPanelAcik} />
 
             {/* Ana İçerik Alanı - Panel daraldığında flex-1 sayesinde otomatik olarak ekranı kaplayıp ortalar */}

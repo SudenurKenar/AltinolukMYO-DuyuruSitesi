@@ -22,7 +22,7 @@ export default function Baslik() {
         // Backend'den güncel linkleri çekme fonksiyonu
         const fetchLinks = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/sktklinkler');
+                const response = await fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktklinkler');
                 if (response.ok) {
                     const data = await response.json();
                     setDynamicLinks({

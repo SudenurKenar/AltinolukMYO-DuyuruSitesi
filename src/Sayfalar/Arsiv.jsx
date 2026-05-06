@@ -84,7 +84,7 @@ export default function Arsiv() {
 
     const fetchBildiriler = async () => {
         try {
-            const msjRes = await fetch("http://localhost:5000/api/sktkmesajlar");
+            const msjRes = await fetch("https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkmesajlar");
             const msjData = await msjRes.json();
             setMesajlar(msjData);
         } catch (error) {
@@ -106,7 +106,7 @@ export default function Arsiv() {
         if (!silinecekId) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/sktkmesaj-sil/${silinecekId}`, {
+            const response = await fetch(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkmesaj-sil/${silinecekId}`, {
                 method: 'DELETE',
             });
 

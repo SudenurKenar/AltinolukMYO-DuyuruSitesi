@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 
-// LAZY LOAD BİLEŞENİ: Satır bazlı izleme yapar
+// LAZY LOAD BİLEŞENİ: Satır bazlı izleme yaparak performansı korur.
 const LazyOdevSatiri = ({ odev, tarihFormatla, handleIncele }) => {
     const [gorunur, setGorunur] = useState(false);
     const satirRef = useRef();
@@ -27,7 +27,6 @@ const LazyOdevSatiri = ({ odev, tarihFormatla, handleIncele }) => {
         <tr ref={satirRef} className="hover:bg-cyan-50/10 transition-all duration-300 min-h-[100px]">
             {gorunur ? (
                 <>
-                    {/* ÖĞRENCİ BİLGİSİ */}
                     <td className="px-6 md:px-8 py-6 animate-in fade-in duration-500">
                         <div className="max-w-[180px] overflow-x-auto ozel-scroll pb-1">
                             <div className="flex flex-col leading-tight">
@@ -38,7 +37,6 @@ const LazyOdevSatiri = ({ odev, tarihFormatla, handleIncele }) => {
                         <div className="text-[10px] text-cyan-500 font-black mt-1 uppercase tracking-widest">{odev.no}</div>
                     </td>
 
-                    {/* DERS */}
                     <td className="px-6 md:px-8 py-6 text-center animate-in fade-in duration-500">
                         <div className="w-full max-w-[260px] mx-auto overflow-x-auto ozel-scroll pb-1.5">
                             <span className="bg-white text-slate-500 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase border border-slate-100 shadow-sm whitespace-nowrap inline-block">
@@ -47,19 +45,16 @@ const LazyOdevSatiri = ({ odev, tarihFormatla, handleIncele }) => {
                         </div>
                     </td>
 
-                    {/* AÇIKLAMA */}
                     <td className="px-6 md:px-8 py-6 animate-in fade-in duration-500">
                         <div className="max-h-24 overflow-y-auto pr-2 text-xs text-slate-500 leading-relaxed font-medium italic ozel-scroll">
                             {odev.aciklama && odev.aciklama.trim() !== "" ? odev.aciklama : "---"}
                         </div>
                     </td>
 
-                    {/* VAKİT */}
                     <td className="px-6 md:px-8 py-6 text-[10px] font-bold text-slate-400 text-left animate-in fade-in duration-500">
                         {tarihFormatla(odev.yuktarihi)}
                     </td>
 
-                    {/* DURUM & EYLEM (BOYUT SİLİNDİ) */}
                     <td className="px-6 md:px-8 py-6 text-right animate-in fade-in duration-500">
                         <div className="flex flex-col items-end gap-2">
                             {odev.dosyolu ? (
@@ -80,7 +75,6 @@ const LazyOdevSatiri = ({ odev, tarihFormatla, handleIncele }) => {
                     </td>
                 </>
             ) : (
-                /* Yükleme Esnasındaki Görünüm */
                 <td colSpan="5" className="h-[100px] bg-slate-50/50 animate-pulse"></td>
             )}
         </tr>
@@ -93,7 +87,7 @@ export default function AdminOdevler() {
     const [seciliPdf, setSeciliPdf] = useState(null);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/sktkodevler')
+        fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkodevler')
             .then(res => res.json())
             .then(data => {
                 setOdevler(Array.isArray(data) ? data : []);
@@ -114,22 +108,17 @@ export default function AdminOdevler() {
     const handleDosyaIncele = (dosyaYolu) => {
         if (!dosyaYolu) return toast.error("Dosya yolu bulunamadı!");
 
-        // Eğer yol başında / yoksa biz ekleyelim
-        const temizYol = dosyaYolu.startsWith('/') ? dosyaYolu : `/${dosyaYolu}`;
-        const tamYol = `http://localhost:5000${temizYol}`;
 
-        const uzanti = dosyaYolu.split('.').pop().toLowerCase();
+        let temizYol = dosyaYolu.replace(/\/+$/, "");
+        const dosyaAdi = temizYol.split('/').pop();
+        const tamYol = `https://altinolukmyo.apps.srv.aykutdurgut.com.tr/uploads/${dosyaAdi}`;
+
+        const uzanti = dosyaAdi.split('.').pop().toLowerCase();
 
         if (uzanti === 'pdf') {
-            setSeciliPdf(tamYol); // Modal'ı açar
+            setSeciliPdf(tamYol);
         } else {
-            // PDF dışındakileri (zip, rar) doğrudan indirir
-            const link = document.createElement('a');
-            link.href = tamYol;
-            link.setAttribute('download', dosyaYolu.split('/').pop());
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            window.open(tamYol, '_blank');
             toast.success("Dosya indiriliyor...");
         }
     };
@@ -146,7 +135,6 @@ export default function AdminOdevler() {
             `}} />
 
             <div className="max-w-7xl mx-auto">
-                {/* Üst Başlık */}
                 <div className="mb-10">
                     <h2 className="text-3xl font-black text-[#1e3a5a] italic tracking-tighter">
                         ÖDEV YÖNETİM <span className="text-cyan-600 not-italic font-light">PANELİ</span>
@@ -154,7 +142,6 @@ export default function AdminOdevler() {
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2">Akademik Arşiv ve Kontrol Merkezi</p>
                 </div>
 
-                {/* Tablo Alanı */}
                 <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
                     <div className="overflow-x-auto ozel-scroll transform scale-y-[-1]">
                         <div className="transform scale-y-[-1] pt-3 pb-2">
@@ -184,20 +171,13 @@ export default function AdminOdevler() {
                 </div>
             </div>
 
-            {/* PDF MODAL */}
             {seciliPdf && (
-                /* Dış Karartma ve Arka Plan (z-index 100 ile en üstte) */
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1e3a5a]/40 backdrop-blur-md p-4 animate-in fade-in duration-500">
-
-                    {/* Modal Gövdesi */}
                     <div className="bg-white w-full max-w-5xl h-[90vh] rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative border-8 border-white">
-
-                        {/* Üst Başlık ve Kapatma Çubuğu */}
                         <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center px-8 shrink-0">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
                                 Resmi Evrak Ön İzleme
                             </span>
-
                             <button
                                 onClick={() => setSeciliPdf(null)}
                                 className="bg-white text-slate-600 px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-slate-200 hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95 shadow-sm"
@@ -205,13 +185,10 @@ export default function AdminOdevler() {
                                 Kapat
                             </button>
                         </div>
-
-                        {/* Evrak Görüntüleme Alanı */}
                         <div className="flex-1 bg-slate-100 relative">
                             <iframe
-                                /* key ekleyerek her yeni dosyada iframe'in sıfırdan temiz yüklenmesini sağlıyoruz */
                                 key={seciliPdf}
-                                src={`${seciliPdf}#toolbar=0&navpanes=0`}
+                                src={seciliPdf}
                                 className="w-full h-full border-none absolute inset-0"
                                 title="PDF"
                             />

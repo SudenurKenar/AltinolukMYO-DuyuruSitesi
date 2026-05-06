@@ -11,7 +11,7 @@ export default function LinkYonetimi() {
     useEffect(() => {
         const fetchCurrentLinks = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/sktklinkler');
+                const response = await fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktklinkler');
                 if (response.ok) {
                     const data = await response.json();
                     setLinks({
@@ -36,7 +36,7 @@ export default function LinkYonetimi() {
         setStatus({ type: '', message: '' });
 
         try {
-            const response = await fetch('http://localhost:5000/api/sktklinkler-guncelle', {
+            const response = await fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktklinkler-guncelle', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(links)

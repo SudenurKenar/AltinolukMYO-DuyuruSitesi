@@ -8,7 +8,6 @@ export default function Admin() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Form State'leri - Orijinal yapı korunmuştur
     const [baslik, setBaslik] = useState("");
     const [aciklama, setAciklama] = useState("");
     const [mesajTuruId, setMesajTuruId] = useState("");
@@ -20,7 +19,7 @@ export default function Admin() {
     useEffect(() => {
         const fetchVeriler = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/sktkmesajturu");
+                const res = await fetch("https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkmesajturu");
                 setMesajTurleri(await res.json());
             } catch (error) {
                 toast.error("Sistem verileri yüklenirken bir sorun oluştu.");
@@ -30,12 +29,11 @@ export default function Admin() {
 
         if (location.state && location.state.düzenlenecekMesaj) {
             const m = location.state.düzenlenecekMesaj;
-            setBaslik(m.baslik);
-            setAciklama(m.aciklama);
+            setBaslik(m.baslik || "");
+            setAciklama(m.aciklama || "");
             setMesajTuruId(m.mesajturu_id);
             setDuzenlemeModu(true);
             setDuzenlenecekId(m.id);
-
             toast("Kayıt resmi düzenleme için hazırlandı.", { icon: '📝' });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -43,11 +41,18 @@ export default function Admin() {
 
     const handleMesajIslemi = async (e) => {
         e.preventDefault();
+
+
+        if (!baslik.trim()) return toast.error("Lütfen bildiri başlığını yazınız.");
         if (!mesajTuruId) return toast.error("Lütfen bildiri statüsünü seçiniz.");
 
+
+        const editörMetni = aciklama.replace(/<[^>]*>/g, '').trim();
+        if (!editörMetni) return toast.error("Lütfen bildiri içeriğini (mesajı) yazınız.");
+
         const url = duzenlemeModu
-            ? `http://localhost:5000/api/sktkmesaj-duzenle/${duzenlenecekId}`
-            : "http://localhost:5000/api/sktkmesaj-ekle";
+            ? `https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkmesaj-duzenle/${duzenlenecekId}`
+            : "https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkmesaj-ekle";
 
         const method = duzenlemeModu ? "PUT" : "POST";
         const toastId = toast.loading(duzenlemeModu ? 'Değişiklikler işleniyor...' : 'Bildiri yayınlanıyor...');
@@ -57,7 +62,7 @@ export default function Admin() {
                 method: method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    baslik,
+                    baslik: baslik.trim(),
                     aciklama,
                     mesajturu_id: mesajTuruId
                 })
@@ -87,11 +92,8 @@ export default function Admin() {
     };
 
     return (
-        /* px-4 md:px-0: Mobilde kenarlara yapışmasın diye hafif boşluk eklendi */
-        <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl shadow-cyan-100/50 p-6 md:p-8 border border-cyan-50 font-sans px-4 md:px-8">
-
+        <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl shadow-cyan-100/50 p-6 md:p-8 border border-cyan-50 font-sans px-4 md:px-8">
             <form onSubmit={handleMesajIslemi} className="space-y-6 text-left">
-
                 <div className="mb-10">
                     <h2 className="text-3xl font-black text-[#1e3a5a] italic tracking-tighter">
                         BİLDİRİ YÖNETİM <span className="text-cyan-600 not-italic font-light">PANELİ</span>
@@ -99,9 +101,19 @@ export default function Admin() {
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2">Bildiri yazma paneli</p>
                 </div>
 
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri Başlığı</label>
+                    <input
+                        type="text"
+                        value={baslik}
+                        onChange={(e) => setBaslik(e.target.value)}
+                        placeholder="Örn: Sınav Takvimi Hakkında"
+                        className="w-full p-4 bg-white rounded-2xl border border-slate-200 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                </div>
+
                 <div className="space-y-3">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri Statüsü</label>
-                    {/* gap-3 md:gap-6: Mobilde statüler birbirine çok girmesin diye daraltıldı */}
                     <div className="flex flex-wrap gap-3 md:gap-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         {mesajTurleri.map((tur) => (
                             <label key={tur.id} className="flex items-center gap-3 cursor-pointer group">
@@ -129,14 +141,44 @@ export default function Admin() {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri İçeriği</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri İçeriği (Bildirinin ana sayfada nasıl gözüküceğini görmek için sol paneli kapatınız)</label>
                     <div className="bg-white rounded-2xl border border-slate-200 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all overflow-hidden">
-                        {/* h-48 sm:h-80: Mobilde klavye açıldığında ekranı kapatmasın diye yükseklik ayarlandı */}
-                        <ReactQuill theme="snow" value={aciklama} onChange={setAciklama} modules={editorModulleri} className="h-48 sm:h-80 md:h-96 pb-12 border-none" />
+                        <style>
+                            {`
+                                .ql-editor {
+                                    min-height: 400px;
+                                    font-family: 'serif';
+                                    font-size: 14.5px;
+                                    line-height: 1.7;
+                                    padding: 40px 60px !important;
+                                    text-align: left;
+                                    hyphens: none !important;
+                                    -webkit-hyphens: none !important;
+                                    overflow-wrap: break-word;
+                                }
+                                .ql-container {
+                                    border-bottom-left-radius: 1rem;
+                                    border-bottom-right-radius: 1rem;
+                                    background: white;
+                                }
+                                .ql-toolbar {
+                                    background: #f8fafc;
+                                    border-top-left-radius: 1rem;
+                                    border-top-right-radius: 1rem;
+                                    border-color: #e2e8f0 !important;
+                                }
+                            `}
+                        </style>
+                        <ReactQuill
+                            theme="snow"
+                            value={aciklama}
+                            onChange={setAciklama}
+                            modules={editorModulleri}
+                            className="border-none"
+                        />
                     </div>
                 </div>
 
-                {/* flex-col md:flex-row: Mobilde butonlar alt alta gelerek daha kolay tıklanır hale getirildi */}
                 <div className="pt-4 flex flex-col md:flex-row gap-4">
                     <button type="submit" className="font-bold flex-1 bg-cyan-600 hover:bg-cyan-700 text-white py-4 rounded-2xl shadow-lg shadow-cyan-200 active:scale-95 text-base md:text-lg transition-all uppercase tracking-widest">
                         {duzenlemeModu ? "Değişiklikleri Kaydet" : "Bildiriyi Yayınla"}

@@ -8,26 +8,27 @@ import fs from 'fs';
 import db from './db.js';
 import bcrypt from 'bcrypt';
 
-/**
- * Uygulama Yapılandırması ve Küresel Değişkenler
- */
+
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const JWT_SECRET = 'kurumsal_erisim_anahtari_2026';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/**
- * Orta Katman Yazılımları (Middleware)
- */
-app.use(cors());
+
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true
+}));
+
+
 app.use(express.json({ limit: '200mb' }));
 app.use(express.urlencoded({ limit: '200mb', extended: true }));
 
-/**
- * Multer Depolama Yapılandırması
- */
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadPath = path.join(__dirname, 'uploads');
@@ -58,10 +59,8 @@ const upload = multer({
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ==========================================
-// 1. DERS YÖNETİM SİSTEMİ
-// ==========================================
 
+// 1. DERS YÖNETİM SİSTEMİ
 app.get('/api/sktkdersler', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM sktkdersler ORDER BY ders ASC');
@@ -100,37 +99,19 @@ app.delete('/api/sktkdersler/:id', async (req, res) => {
 
 app.patch('/api/sktkdersler/:id/durum', async (req, res) => {
     const { id } = req.params;
-    const { durum } = req.body; // Frontend'den gelen yeni durum (true/false)
-
+    const { durum } = req.body;
     try {
         const query = 'UPDATE sktkdersler SET durum = $1 WHERE id = $2 RETURNING *';
         const result = await db.query(query, [durum, id]);
-
         if (result.rows.length > 0) {
-            res.status(200).json({
-                success: true,
-                message: "Ders durumu başarıyla güncellendi.",
-                data: result.rows[0]
-            });
+            res.status(200).json({ success: true, data: result.rows[0] });
         } else {
-            res.status(404).json({
-                success: false,
-                message: "Güncellenecek ders bulunamadı."
-            });
+            res.status(404).json({ success: false, message: "Ders bulunamadı." });
         }
-    } catch (error) {
-        console.error("Durum güncelleme hatası:", error);
-        res.status(500).json({
-            success: false,
-            message: "Sunucu hatası oluştu."
-        });
-    }
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// ==========================================
 // 2. ÖDEV VE ARŞİV SİSTEMİ
-// ==========================================
-
 app.get('/api/sktkodevler', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM sktkodev ORDER BY yuktarihi DESC');
@@ -140,11 +121,11 @@ app.get('/api/sktkodevler', async (req, res) => {
 
 app.post('/api/sktkodevler', upload.single('odev_dosyasi'), async (req, res) => {
     const { no, isim, soyisim, ders, aciklama } = req.body;
-    const dosyolu = req.file ? `/uploads/${req.file.filename}` : null;
+    const dosyolu = req.file ? req.file.filename : null;
 
     if (!no || no.trim().length !== 12 || !isim || !soyisim || !ders) {
         if (req.file) fs.unlinkSync(req.file.path);
-        return res.status(400).json({ success: false, message: "Eksik veri girişi." });
+        return res.status(400).json({ success: false, message: "Eksik veri." });
     }
 
     try {
@@ -157,23 +138,16 @@ app.post('/api/sktkodevler', upload.single('odev_dosyasi'), async (req, res) => 
     }
 });
 
-// ==========================================
 // 3. MESAJ SİSTEMİ
-// ==========================================
-
 app.get('/api/sktkmesajturu', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM sktkmesajturu ORDER BY id ASC');
         res.status(200).json(result.rows || []);
-    } catch (error) {
-        console.error("Mesaj türü çekme hatası:", error);
-        res.status(500).json({ success: false, message: "Veritabanı hatası." });
-    }
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
 app.get('/api/sktkmesajlar', async (req, res) => {
     try {
-
         const query = `
             SELECT m.id, m.baslik, m.aciklama, m.atistarihi, m.mesajturu_id, t.tur as mesaj_turu 
             FROM sktkmesaj m 
@@ -181,94 +155,55 @@ app.get('/api/sktkmesajlar', async (req, res) => {
             ORDER BY m.atistarihi DESC`;
         const queryResult = await db.query(query);
         res.status(200).json(queryResult.rows);
+    } catch (error) { res.status(500).json([]); }
+});
+
+// 3. MESAJ SİSTEMİ (Eksik olan ekleme rotası)
+app.post('/api/sktkmesaj-ekle', async (req, res) => {
+    const { baslik, aciklama, mesajturu_id } = req.body;
+    try {
+        const query = `INSERT INTO sktkmesaj (baslik, aciklama, mesajturu_id, atistarihi) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING *`;
+        const result = await db.query(query, [baslik, aciklama, mesajturu_id]);
+        res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
-        console.error("Liste çekme hatası:", error);
-        res.status(500).json([]);
+        res.status(500).json({ success: false, message: "Mesaj eklenemedi." });
     }
 });
 
 app.put('/api/sktkmesaj-duzenle/:id', async (req, res) => {
     const { id } = req.params;
     const { baslik, aciklama, mesajturu_id } = req.body;
-
     try {
-
-        const query = `
-            UPDATE sktkmesaj 
-            SET baslik = $1, aciklama = $2, mesajturu_id = $3 
-            WHERE id = $4 
-            RETURNING *`;
-
+        const query = `UPDATE sktkmesaj SET baslik = $1, aciklama = $2, mesajturu_id = $3 WHERE id = $4 RETURNING *`;
         const result = await db.query(query, [baslik, aciklama, mesajturu_id, id]);
-
-        if (result.rows.length > 0) {
-            res.status(200).json({ success: true, data: result.rows[0] });
-        } else {
-            res.status(404).json({ success: false, message: "Kayıt bulunamadı." });
-        }
-    } catch (error) {
-        console.error("Düzenleme hatası:", error); // Terminalde hatanın detayını görebilirsiniz
-        res.status(500).json({ success: false, message: "Sunucu hatası." });
-    }
+        if (result.rows.length > 0) res.status(200).json({ success: true, data: result.rows[0] });
+        else res.status(404).json({ success: false });
+    } catch (error) { res.status(500).json({ success: false }); }
 });
-
 
 app.delete('/api/sktkmesaj-sil/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        // Tablo isminin 'sktkmesaj' olduğundan emin olun
-        const query = 'DELETE FROM sktkmesaj WHERE id = $1 RETURNING *';
-        const result = await db.query(query, [id]);
-
-        if (result.rows.length > 0) {
-            res.status(200).json({
-                success: true,
-                message: "Bildiri başarıyla sistemden kaldırıldı."
-            });
-        } else {
-            res.status(404).json({
-                success: false,
-                message: "Silinecek kayıt bulunamadı."
-            });
-        }
-    } catch (error) {
-        console.error("Silme hatası:", error);
-        res.status(500).json({
-            success: false,
-            message: "Silme işlemi sırasında sunucu hatası oluştu."
-        });
-    }
+        const result = await db.query('DELETE FROM sktkmesaj WHERE id = $1 RETURNING *', [id]);
+        if (result.rows.length > 0) res.status(200).json({ success: true });
+        else res.status(404).json({ success: false });
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
-//////////////////////////////////
-/// 4. ADMİN GİRİŞ SİSTEMİ     ///
-//////////////////////////////////
-
-// server.js içindeki login rotasının yeni hali
+// 4. ADMİN GİRİŞ SİSTEMİ
 app.post('/api/sktkadmin/login', async (req, res) => {
     const { id, sifre } = req.body;
     try {
         const result = await db.query('SELECT * FROM sktkadmin WHERE kullaniciadi = $1', [String(id).trim()]);
-
         if (result.rows.length > 0) {
             const admin = result.rows[0];
-            const dbHash = String(admin.sifre).trim();
-
-            // Sadece Bcrypt ile kontrol kalsın
-            const sifreDogruMu = await bcrypt.compare(String(sifre), dbHash);
-
+            const sifreDogruMu = await bcrypt.compare(String(sifre), String(admin.sifre).trim());
             if (sifreDogruMu) {
                 const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: '24h' });
                 res.status(200).json({ success: true, token });
-            } else {
-                res.status(401).json({ success: false, message: "Hatalı şifre!" });
-            }
-        } else {
-            res.status(401).json({ success: false, message: "Kullanıcı bulunamadı!" });
-        }
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
+            } else res.status(401).json({ success: false, message: "Hatalı şifre!" });
+        } else res.status(401).json({ success: false, message: "Kullanıcı yok!" });
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
 app.put('/api/admin-ad-guncelle', async (req, res) => {
@@ -315,10 +250,7 @@ app.put('/api/admin-sifre-guncelle', async (req, res) => {
     }
 });
 
-// ==========================================
 // 5. SABİT LİNKLER SİSTEMİ
-// ==========================================
-
 app.get('/api/sktklinkler', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM sktklinkler WHERE id = 1');
@@ -330,10 +262,13 @@ app.put('/api/sktklinkler-guncelle', async (req, res) => {
     const { link1, link2 } = req.body;
     try {
         await db.query(`UPDATE sktklinkler SET link1 = $1, link2 = $2 WHERE id = 1`, [link1, link2]);
-        res.status(200).json({ success: true, message: "Linkler güncellendi." });
+        res.status(200).json({ success: true });
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-app.listen(PORT, () => {
-    console.log(`| SUNUCU AKTİF: http://localhost:${PORT} |`);
+/**
+ * Sunucuyu Başlatma (Hocanızın Tavsiyesiyle Dinleme Ayarı)
+ */
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`| SUNUCU AKTİF: Server running on port ${PORT} |`);
 });

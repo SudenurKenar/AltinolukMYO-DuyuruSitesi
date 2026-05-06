@@ -9,10 +9,9 @@ export default function DuyuruDetay() {
     const [detay, setDetay] = useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:5000/api/sktkmesajlar`)
+        fetch(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkmesajlar`)
             .then(res => res.json())
             .then(data => {
-                // URL'den gelen ID ile eşleşen duyuruyu buluyoruz
                 const bulundu = data.find(m => String(m.id) === String(id));
                 if (bulundu) setDetay(bulundu);
                 else toast.error("İçerik arşivde bulunamadı.");
@@ -34,69 +33,50 @@ export default function DuyuruDetay() {
     const tarih = tarihObje.toLocaleDateString('tr-TR');
     const saat = tarihObje.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
-    // SEO Şema Verisi
-    const schemaData = {
-        "@context": "https://schema.org",
-        "@type": "NewsArticle",
-        "headline": detay.baslik,
-        "datePublished": detay.atistarihi,
-        "author": { "@type": "Person", "name": "Aykut Durgut" },
-        "publisher": { "@type": "Organization", "name": "Altınoluk MYO" }
-    };
-
     return (
         <AnaLayout>
-            {/* SEO Düzenlemesi: Sekme başlığı artık sadece duyurunun adını gösterir */}
             <Helmet>
                 <title>{detay.baslik} | Altınoluk MYO</title>
-                <meta name="description" content={`${detay.baslik} - Aykut Durgut, Altınoluk MYO Bilgisayar Programcılığı Duyurusu.`} />
-                <script type="application/ld+json">
-                    {JSON.stringify(schemaData)}
-                </script>
             </Helmet>
 
-            <div className="w-full max-w-[1100px] mx-auto min-h-[calc(100vh-250px)] px-4 sm:px-6 lg:px-8 py-6 sm:py-12 font-serif text-left">
+            <div className="w-full max-w-[1200px] mx-auto min-h-[calc(100vh-250px)] px-2 sm:px-6 lg:px-8 py-4 sm:py-10 font-serif text-left">
                 <div className="w-full bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col">
 
-                    {/* Header: Kategori etiketi tamamen kaldırıldı */}
-                    <header className="px-6 sm:px-12 lg:px-16 py-8 lg:py-12 bg-slate-50/10 border-b border-slate-100/60">
+                    <header className="px-5 sm:px-10 lg:px-12 py-6 lg:py-10 bg-slate-50/10 border-b border-slate-100/60">
                         <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#1e3a5a] leading-tight tracking-tight mb-6">
                             {detay.baslik}
                         </h1>
 
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-slate-100/60 pt-6">
-                            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-sans">
-                                <time dateTime={detay.atistarihi} className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm">
-                                    <span>{tarih}</span>
-                                    <span className="w-0.5 h-0.5 bg-slate-300 rounded-full"></span>
-                                    <span>{saat}</span>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-slate-100/60 pt-6 font-sans">
+                            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <time className="bg-white px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm font-bold text-slate-500">
+                                    {tarih} • {saat}
                                 </time>
                                 <span className="text-cyan-600 font-black">{detay.mesaj_turu}</span>
                             </div>
-                            {/* Kategori Badge bölümü buradan imha edildi */}
                         </div>
                     </header>
 
-                    {/* Main: Mesaj İçeriği */}
-                    <main className="px-6 sm:px-12 lg:px-16 py-6 lg:py-10 bg-white">
-                        <article className="w-full max-w-[850px]">
+
+                    <main className="px-5 sm:px-10 lg:px-12 py-8 lg:py-12 bg-white">
+                        <article className="w-full max-w-none">
                             <div
-                                className="text-slate-700 text-[15px] sm:text-[16px] leading-[1.5] 
-                                           prose prose-slate max-w-none font-serif
-                                           [&>h1]:text-xl [&>h1]:font-black [&>h1]:text-[#1e3a5a] [&>h1]:mb-3
-                                           [&>h2]:text-lg [&>h2]:font-bold [&>h2]:text-slate-800 [&>h2]:mt-4 [&>h2]:mb-2
-                                           [&>p]:mb-4 [&>p]:leading-normal
-                                           [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-4 [&>ul]:space-y-0.5
-                                           [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-4 [&>ol]:space-y-0.5
-                                           [&>strong]:font-bold [&>strong]:text-slate-900
-                                           [&>a]:text-cyan-600 [&>a]:font-bold [&>a]:underline"
+                                className="text-slate-800 text-[15px] sm:text-[17px] leading-[1.7] font-serif
+                                           [word-wrap:break-word] [overflow-wrap:anywhere]
+                                           prose prose-slate max-w-none
+                                           [&_p]:!mb-3 [&_p]:min-h-[1em] [&_p]:whitespace-pre-wrap
+                                           [&_ul]:!list-disc [&_ul]:!pl-8 [&_ul]:!mb-4 [&_ul]:!space-y-1
+                                           [&_li]:!mb-1 [&_li]:!leading-relaxed
+                                           [&_strong]:font-black [&_strong]:text-slate-900
+                                           [&_a]:text-cyan-600 [&_a]:underline [&_a]:break-all
+                                           [&_h2]:!mt-6 [&_h2]:!mb-2 [&_h2]:text-lg [&_h2]:font-bold"
                                 dangerouslySetInnerHTML={{ __html: detay.aciklama }}
                             />
                         </article>
 
-                        <div className="mt-12 pt-6 border-t border-slate-50">
-                            <p className="text-[10px] text-slate-100/10 select-none pointer-events-none text-center">
-                                Aykut Durgut altınoluk meslek yüksekokulu altınoluk myo bilgisayar programcılığı ayk dur
+                        <div className="mt-16 pt-8 border-t border-slate-100">
+                            <p className="text-[10px] text-slate-300 text-center font-sans tracking-[0.4em] uppercase italic opacity-50">
+                                Altınoluk Meslek Yüksekokulu Akademik Duyuru Paneli
                             </p>
                         </div>
                     </main>

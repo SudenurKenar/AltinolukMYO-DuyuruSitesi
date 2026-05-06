@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Lock, ShieldCheck, KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
-/**
- * Şifre Giriş Bileşeni (Kopyalama ve yapıştırma engelleme özellikleri dahil)
- */
+
 const PasswordInput = ({ label, icon: Icon, value, onChange, show, setShow, placeholder, preventPaste = false, preventCopy = false }) => (
     <div className="space-y-2">
         <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-slate-400 ml-2">
@@ -52,7 +50,7 @@ export default function AdminProfil() {
         setStatus({ type: '', message: '' });
 
         try {
-            const res = await fetch(`http://localhost:5000/api/${endpoint}`, {
+            const res = await fetch(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/${endpoint}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -81,7 +79,7 @@ export default function AdminProfil() {
     return (
         <div className="relative p-4 md:p-8 animate-in fade-in duration-700 max-w-5xl mx-auto space-y-8">
 
-            {/* TEPEDEN İNEN MESAJ KUTUSU (Toast Notification) */}
+            {/* TEPEDEN İNEN MESAJ KUTUSU */}
             {status.message && (
                 <div className="fixed top-6 left-0 right-0 z-[9999] flex justify-center px-4 pointer-events-none">
                     <div className={`

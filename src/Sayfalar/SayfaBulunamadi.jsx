@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 export default function SayfaBulunamadi() {
     const navigate = useNavigate();
 
-    // DİKKAT: style={style} eklendi. Artık rüzgar emirlerini alabiliyor!
     const ZeytinSimge = ({ className, style }) => (
         <svg
             viewBox="0 0 120 120"

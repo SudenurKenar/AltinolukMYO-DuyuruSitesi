@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DuyuruKarti from '../Components/DuyuruKarti';
 
+const baslikFormatla = (metin, limit = 65) => {
+    if (!metin) return "";
+
+    const buyukHarf = metin.toLocaleUpperCase('tr-TR');
+    return buyukHarf.length > limit ? buyukHarf.substring(0, limit) + "..." : buyukHarf;
+};
+
 // Her bir duyuru kartını ekrana girdikçe süzülerek getiren Lazy Load bileşeni
 const LazyDuyuru = ({ b, borderClass, btnHoverClass }) => {
     const [gorunurMu, setGorunurMu] = useState(false);
@@ -31,7 +38,12 @@ const LazyDuyuru = ({ b, borderClass, btnHoverClass }) => {
                 }`}
         >
             {gorunurMu ? (
-                <DuyuruKarti b={b} borderClass={borderClass} btnHoverClass={btnHoverClass} />
+                // Başlık burada formatlanarak alt bileşene iletilir
+                <DuyuruKarti
+                    b={{ ...b, baslik: baslikFormatla(b.baslik, 65) }}
+                    borderClass={borderClass}
+                    btnHoverClass={btnHoverClass}
+                />
             ) : (
                 <div className="h-32 bg-slate-50/50 animate-pulse rounded-2xl m-4" />
             )}
@@ -74,7 +86,7 @@ export default function Anasayfa() {
     const duyuruBasina = 10;
 
     useEffect(() => {
-        fetch("http://localhost:5000/api/sktkmesajlar")
+        fetch("https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkmesajlar")
             .then(res => res.json())
             .then(data => setBildiriler(Array.isArray(data) ? data : []))
             .catch(() => setBildiriler([]));

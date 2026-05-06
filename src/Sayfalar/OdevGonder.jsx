@@ -17,14 +17,12 @@ export default function OdevGonder() {
     const [yukleniyor, setYukleniyor] = useState(false);
     const [dosyaHazirlaniyor, setDosyaHazirlaniyor] = useState(false);
     const [dersListesi, setDersListesi] = useState([]);
-
-    // YENİ: Sürükle-bırak animasyonu için kontrol durumu
     const [surukleniyor, setSurukleniyor] = useState(false);
 
     useEffect(() => {
         const dersleriGetir = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/sktkdersler');
+                const res = await axios.get('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdersler');
                 const aktifDersler = res.data.filter(d => d.durum === true || d.durum === 1);
                 setDersListesi(aktifDersler);
             } catch (error) {
@@ -58,7 +56,6 @@ export default function OdevGonder() {
         setForm({ ...form, no: value });
     };
 
-    // YENİ: Hem sürükle-bırak nem de normal seçim için ortak dosya denetim protokolü
     const dosyaIsle = (secilenDosya) => {
         if (!secilenDosya) return;
 
@@ -138,7 +135,7 @@ export default function OdevGonder() {
         const toastId = toast.loading("Ödeviniz saraya teslim ediliyor...");
 
         try {
-            const res = await axios.post('http://localhost:5000/api/sktkodevler', formData);
+            const res = await axios.post('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkodevler', formData);
 
             if (res.data.success) {
                 toast.success("Ödev başarıyla gönderildi.", { id: toastId });
@@ -226,7 +223,7 @@ export default function OdevGonder() {
                         </select>
                     </div>
 
-                    {/* YENİ: Sürükle Bırak Alanı */}
+                    {/* Sürükle Bırak Alanı */}
                     <div
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
