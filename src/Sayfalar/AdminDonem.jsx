@@ -39,7 +39,7 @@ export default function AdminDonem() {
                 donem_adi: formatliDonem
             });
             if (res.data.success) {
-                toast.success("Dönem başarıyla mühürlendi.");
+                toast.success("Dönem başarıyla kaydedildi.");
                 setYeniDonem("");
                 fetchDonemler();
             }
@@ -88,7 +88,7 @@ export default function AdminDonem() {
         try {
             const res = await axios.delete(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdonem-sil/${silinecekId}`);
             if (res.data.success) {
-                toast.success("Dönem resmi kayıtlardan silindi.");
+                toast.success("Dönem başarıyla kayıtlardan silindi.");
                 setSilmeModaliAcik(false);
                 fetchDonemler();
             }

@@ -264,7 +264,7 @@ app.put('/api/admin-sifre-guncelle', async (req, res) => {
         await db.query('UPDATE sktkadmin SET sifre = $1 WHERE id = $2', [hashedYeniSifre, admin.id]);
         res.json({
             success: true,
-            message: "Şifreniz başarıyla mühürlendi ve güncellendi."
+            message: "Şifreniz başarıyla kaydedildi ve güncellendi."
         });
     } catch (error) {
         console.error("Şifre Güncelleme Hatası:", error);

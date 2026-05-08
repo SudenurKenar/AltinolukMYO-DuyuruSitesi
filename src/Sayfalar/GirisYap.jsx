@@ -35,16 +35,18 @@ export default function GirisYap() {
             const data = await response.json();
 
             if (data.success) {
+                // Giriş başarılı: Bilgiler kaydedildi
                 sessionStorage.setItem("token", data.token);
                 sessionStorage.setItem("isLoggedIn", "true");
                 sessionStorage.setItem("userName", kullaniciAdi);
 
                 setStatus({ type: 'success', message: 'Giriş başarılı, yönlendiriliyorsunuz...' });
 
+                // Başarı mesajını görmeniz için kısa bir gecikme sonrası yönlendir
                 setTimeout(() => {
-                    navigate("/");
-                    window.location.reload();
-                }, 1500); // Başarı mesajını görmeniz için kısa bir gecikme
+                    navigate("/admin");
+                    window.location.reload(); // Layout'un giriş durumunu algılaması için
+                }, 1500);
             } else {
                 setStatus({ type: 'error', message: data.message || "Giriş başarısız, bilgilerinizi kontrol edin!" });
             }
