@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import OnayModali from '../Components/OnayModali';
 
-// BİLDİRİ KARTI İÇİN LAZY LOAD BİLEŞENİ
+// BİLDİRİ KARTI İÇİN LAZY LOAD BİLEŞENİ (Değişmedi)
 const LazyBildiriKarti = ({ mesaj, handleDuzenle, handleSilTiklama }) => {
     const [gorunur, setGorunur] = useState(false);
     const kartRef = useRef();
@@ -16,10 +16,7 @@ const LazyBildiriKarti = ({ mesaj, handleDuzenle, handleSilTiklama }) => {
                     observer.unobserve(kartRef.current);
                 }
             },
-            {
-                threshold: 0.1,
-                rootMargin: '50px' // Kullanıcı gelmeden biraz önce yüklemeye başla
-            }
+            { threshold: 0.1, rootMargin: '50px' }
         );
 
         if (kartRef.current) observer.observe(kartRef.current);
@@ -64,7 +61,6 @@ const LazyBildiriKarti = ({ mesaj, handleDuzenle, handleSilTiklama }) => {
                     </div>
                 </div>
             ) : (
-                /* Yükleme Bekleme Alanı (Skeleton) */
                 <div className="w-full h-[200px] bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-100 animate-pulse"></div>
             )}
         </div>
@@ -77,6 +73,10 @@ export default function Arsiv() {
 
     const [modalAcik, setModalAcik] = useState(false);
     const [silinecekId, setSilinecekId] = useState(null);
+
+    // --- YENİ EKLEMELER: Filtre State'leri ---
+    const [turFiltresi, setTurFiltresi] = useState('Hepsi');
+    const [siralaModu, setSiralaModu] = useState('yeni');
 
     useEffect(() => {
         fetchBildiriler();
@@ -92,6 +92,17 @@ export default function Arsiv() {
         }
     };
 
+    // --- YENİ EKLEMELER: Filtreleme ve Sıralama Mantığı ---
+    const filtrelenmisMesajlar = mesajlar
+        .filter(m => turFiltresi === 'Hepsi' || m.mesaj_turu === turFiltresi)
+        .sort((a, b) => {
+            if (siralaModu === 'yeni') return new Date(b.atistarihi) - new Date(a.atistarihi);
+            if (siralaModu === 'eski') return new Date(a.atistarihi) - new Date(b.atistarihi);
+            if (siralaModu === 'az') return a.baslik.localeCompare(b.baslik, 'tr');
+            if (siralaModu === 'za') return b.baslik.localeCompare(a.baslik, 'tr');
+            return 0;
+        });
+
     const handleDuzenle = (mesaj) => {
         navigate('/admin', { state: { düzenlenecekMesaj: mesaj } });
         toast.success("Seçili kayıt düzenleme moduna aktarıldı.");
@@ -104,14 +115,11 @@ export default function Arsiv() {
 
     const handleGercekSilme = async () => {
         if (!silinecekId) return;
-
         try {
             const response = await fetch(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkmesaj-sil/${silinecekId}`, {
                 method: 'DELETE',
             });
-
             const result = await response.json();
-
             if (result.success) {
                 toast.success("Kayıt sistemden başarıyla kaldırıldı.");
                 setMesajlar(mesajlar.filter(m => m.id !== silinecekId));
@@ -140,16 +148,49 @@ export default function Arsiv() {
                 <h2 className="text-3xl font-black text-[#1e3a5a] italic tracking-tighter">
                     BİLDİRİ YÖNETİM <span className="text-cyan-600 not-italic font-light">PANELİ</span>
                 </h2>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2">Eski bildiri kayıtları</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2 border-l-2 border-cyan-500 pl-3">
+                    ESKİ BİLDİRİ ARŞİVİ VE YÖNETİMİ
+                </p>
             </div>
 
-            {mesajlar.length === 0 ? (
+            {/* --- YENİ EKLEMELER: Filtre Arayüzü --- */}
+            <div className="flex flex-wrap gap-4 mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex flex-col gap-1.5 flex-1 min-w-[200px] text-left">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Kategori Filtresi</label>
+                    <select
+                        value={turFiltresi}
+                        onChange={(e) => setTurFiltresi(e.target.value)}
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+                    >
+                        <option value="Hepsi">Tüm Mesaj Türleri</option>
+                        <option value="Güncel">Güncel Bildiriler</option>
+                        <option value="Sürekli">Sürekli Bildiriler</option>
+                    </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5 flex-1 min-w-[200px] text-left">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Sıralama Seçenekleri</label>
+                    <select
+                        value={siralaModu}
+                        onChange={(e) => setSiralaModu(e.target.value)}
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 outline-none focus:border-cyan-500 transition-colors cursor-pointer"
+                    >
+                        <option value="yeni">Tarih: Yeniden Eskiye</option>
+                        <option value="eski">Tarih: Eskiden Yeniye</option>
+                        <option value="az">Başlık: A'dan Z'ye</option>
+                        <option value="za">Başlık: Z'den A'ya</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* --- GÜNCELLENEN KISIM: filtrelenmisMesajlar kullanılıyor --- */}
+            {filtrelenmisMesajlar.length === 0 ? (
                 <div className="text-center py-16 bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 font-medium text-lg italic">
-                    Sistemde henüz yayınlanmış bir bildiri bulunmamaktadır.
+                    {mesajlar.length === 0 ? "Sistemde henüz yayınlanmış bir bildiri bulunmamaktadır." : "Seçilen kriterlere uygun sonuç bulunamadı."}
                 </div>
             ) : (
                 <div className="space-y-8">
-                    {mesajlar.map((mesaj) => (
+                    {filtrelenmisMesajlar.map((mesaj) => (
                         <LazyBildiriKarti
                             key={mesaj.id}
                             mesaj={mesaj}

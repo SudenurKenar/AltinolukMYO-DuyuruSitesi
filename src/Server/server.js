@@ -114,27 +114,49 @@ app.patch('/api/sktkdersler/:id/durum', async (req, res) => {
 // 2. ÖDEV VE ARŞİV SİSTEMİ
 app.get('/api/sktkodevler', async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM sktkodev ORDER BY yuktarihi DESC');
-        res.status(200).json(result.rows || []);
-    } catch (error) { res.status(500).json([]); }
+        const query = `
+            SELECT 
+                o.*, 
+                d.donem_adi as donem, 
+                k.konu_adi as konu
+            FROM sktkodev o
+            LEFT JOIN sktkdonem d ON o.donem_id = d.id
+            LEFT JOIN sktkkonu k ON o.konu_id = k.id
+            ORDER BY o.yuktarihi DESC`;
+
+        const result = await db.query(query);
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error("Ödev listeleme hatası:", error);
+        res.status(500).json([]);
+    }
 });
 
 app.post('/api/sktkodevler', upload.single('odev_dosyasi'), async (req, res) => {
-    const { no, isim, soyisim, ders, aciklama } = req.body;
+    const { no, isim, soyisim, ders, donem_id, konu_id, aciklama } = req.body;
     const dosyolu = req.file ? req.file.filename : null;
 
-    if (!no || no.trim().length !== 12 || !isim || !soyisim || !ders) {
-        if (req.file) fs.unlinkSync(req.file.path);
-        return res.status(400).json({ success: false, message: "Eksik veri." });
-    }
-
     try {
-        const query = `INSERT INTO sktkodev (isim, soyisim, no, ders, aciklama, dosyolu, yuktarihi) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP) RETURNING *`;
-        const result = await db.query(query, [isim.trim(), soyisim.trim(), no.trim(), ders.trim(), aciklama || '', dosyolu]);
+        const query = `
+            INSERT INTO sktkodev (isim, soyisim, no, ders, donem_id, konu_id, aciklama, dosyolu, yuktarihi) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP) 
+            RETURNING *`;
+
+        const result = await db.query(query, [
+            isim.trim(),
+            soyisim.trim(),
+            no.trim(),
+            ders.trim(),
+            donem_id,
+            konu_id,
+            aciklama || '',
+            dosyolu
+        ]);
+
         res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
-        if (req.file) fs.unlinkSync(req.file.path);
-        res.status(500).json({ success: false });
+        console.error("VERİTABANI FK HATASI:", error.message);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -266,9 +288,118 @@ app.put('/api/sktklinkler-guncelle', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-/**
- * Sunucuyu Başlatma (Hocanızın Tavsiyesiyle Dinleme Ayarı)
- */
+// --- DÖNEM LİSTELE ---
+app.get('/api/sktkdonemler', async (req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM sktkdonem ORDER BY id DESC");
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.post('/api/sktkdonem-ekle', async (req, res) => {
+    try {
+        const { donem_adi } = req.body;
+        const result = await db.query(
+            "INSERT INTO sktkdonem (donem_adi) VALUES($1) RETURNING *",
+            [donem_adi]
+        );
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.put('/api/sktkdonem-guncelle/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { donem_adi } = req.body;
+        await db.query("UPDATE sktkdonem SET donem_adi = $1 WHERE id = $2", [donem_adi, id]);
+        res.json({ success: true, message: "Dönem güncellendi." });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.patch('/api/sktkdonem-durum/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { durum } = req.body;
+        await db.query("UPDATE sktkdonem SET durum = $1 WHERE id = $2", [durum, id]);
+        res.json({ success: true, message: "Dönem durumu güncellendi." });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/sktkdonem-sil/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query("DELETE FROM sktkdonem WHERE id = $1", [id]);
+        res.json({ success: true, message: "Dönem silindi." });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/// KONU
+app.get('/api/sktkkonular', async (req, res) => {
+    try {
+        const result = await db.query("SELECT * FROM sktkkonu ORDER BY id DESC");
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.post('/api/sktkkonular-ekle', async (req, res) => {
+    try {
+        const { konu_adi } = req.body;
+        const result = await db.query(
+            "INSERT INTO sktkkonu (konu_adi) VALUES($1) RETURNING *",
+            [konu_adi]
+        );
+        res.json({ success: true, data: result.rows[0] });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.put('/api/sktkkonular-guncelle/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { konu_adi } = req.body;
+        await db.query("UPDATE sktkkonu SET konu_adi = $1 WHERE id = $2", [konu_adi, id]);
+        res.json({ success: true, message: "Konu güncellendi." });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.patch('/api/sktkkonular-durum/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { durum } = req.body;
+        await db.query("UPDATE sktkkonu SET durum = $1 WHERE id = $2", [durum, id]);
+        res.json({ success: true, message: "Konu durumu güncellendi." });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// --- 5. KONU SİL ---
+app.delete('/api/sktkkonular-sil/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query("DELETE FROM sktkkonu WHERE id = $1", [id]);
+        res.json({ success: true, message: "Konu silindi." });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`| SUNUCU AKTİF: Server running on port ${PORT} |`);
 });

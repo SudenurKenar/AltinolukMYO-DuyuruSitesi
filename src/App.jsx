@@ -12,6 +12,8 @@ import AdminOdevler from "./Sayfalar/AdminOdevler";
 import AdminDersler from "./Sayfalar/AdminDersler";
 import LinkYonetimi from "./Sayfalar/LinkYonetimi";
 import AdminProfil from "./Sayfalar/AdminProfil";
+import AdminKonu from "./Sayfalar/AdminKonu";
+import AdminDonem from "./Sayfalar/AdminDonem";
 
 function App() {
   return (
@@ -37,6 +39,9 @@ function App() {
         <Route path="linkler" element={<LinkYonetimi />} />
         <Route path="*" element={<SayfaBulunamadi />} />
         <Route path="profil" element={<AdminProfil />} />
+        <Route path="konular" element={<AdminKonu />} />
+        <Route path="donemler" element={<AdminDonem />} />
+
       </Route>
     </Routes>
   );

@@ -98,7 +98,9 @@ export default function Admin() {
                     <h2 className="text-3xl font-black text-[#1e3a5a] italic tracking-tighter">
                         BİLDİRİ YÖNETİM <span className="text-cyan-600 not-italic font-light">PANELİ</span>
                     </h2>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2">Bildiri yazma paneli</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2 border-l-2 border-cyan-500 pl-3">
+                        Bildiri Yazma ve Düzenleme paneli
+                    </p>
                 </div>
 
                 <div className="space-y-1">
@@ -141,7 +143,7 @@ export default function Admin() {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri İçeriği (Bildirinin ana sayfada nasıl gözüküceğini görmek için sol paneli kapatınız)</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri İçeriği (Bildirinin detay sayfasında nasıl gözüküceğini görmek için sol paneli kapatınız)</label>
                     <div className="bg-white rounded-2xl border border-slate-200 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all overflow-hidden">
                         <style>
                             {`

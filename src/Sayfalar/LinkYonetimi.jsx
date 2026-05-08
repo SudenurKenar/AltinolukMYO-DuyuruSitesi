@@ -70,12 +70,11 @@ export default function LinkYonetimi() {
             <div className="max-w-3xl mx-auto">
                 {/* Başlık Bölümü */}
                 <div className="mb-10">
-                    <h1 className="text-3xl font-black text-cyan-900 flex items-center gap-3">
-                        <Link2 className="text-cyan-600" size={32} />
-                        Link <span className="text-cyan-600">Yönetimi</span>
-                    </h1>
-                    <p className="text-slate-500 mt-2 font-medium">
-                        Ana sayfadaki hızlı erişim butonlarının yönlendireceği adresleri buradan yönetin.
+                    <h2 className="text-3xl font-black text-[#1e3a5a] italic tracking-tighter uppercase">
+                        Link <span className="text-cyan-600 not-italic font-light">Yönetimi</span>
+                    </h2>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2 border-l-2 border-cyan-500 pl-3">
+                        İletişim ve Rapor Linklerini Buradan Güncelleyebilirsiniz
                     </p>
                 </div>
 

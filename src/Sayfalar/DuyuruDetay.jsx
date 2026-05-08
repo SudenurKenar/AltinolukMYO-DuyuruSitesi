@@ -74,6 +74,16 @@ export default function DuyuruDetay() {
                             />
                         </article>
 
+                        <div className="mt-4 select-text">
+                            <a
+                                href="#"
+                                onClick={(e) => e.preventDefault()}
+                                className="text-white cursor-default text-[8px] selection:bg-cyan-600 selection:text-white"
+                            >
+                                Aykut Durgut altınoluk meslek yüksekokulu altınoluk myo bilgisayar programcılığı ayk dur
+                            </a>
+                        </div>
+
                         <div className="mt-16 pt-8 border-t border-slate-100">
                             <p className="text-[10px] text-slate-300 text-center font-sans tracking-[0.4em] uppercase italic opacity-50">
                                 Altınoluk Meslek Yüksekokulu Akademik Duyuru Paneli

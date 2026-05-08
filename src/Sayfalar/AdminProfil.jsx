@@ -99,12 +99,13 @@ export default function AdminProfil() {
                 </div>
             )}
 
-            <div className="mb-4">
-                <h1 className="text-3xl font-black text-cyan-900 flex items-center gap-3">
-                    <ShieldCheck className="text-cyan-600" size={32} />
-                    Güvenlik <span className="text-cyan-600">Yönetimi</span>
-                </h1>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2 ml-1">Bilgilerinizi güncelleyebilirsiniz</p>
+            <div className="mb-10">
+                <h2 className="text-3xl font-black text-[#1e3a5a] italic tracking-tighter uppercase">
+                    Güvenlik <span className="text-cyan-600 not-italic font-light">Yönetimi</span>
+                </h2>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2 border-l-2 border-cyan-500 pl-3">
+                    Bilgilerinizi güncelleyebilirsiniz
+                </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Archive, GraduationCap, BookOpen, ArrowLeft, Menu, X, ChevronLeft, ChevronRight, Settings, User } from 'lucide-react';
+import { LayoutDashboard, Archive, GraduationCap, BookOpen, ArrowLeft, Menu, X, ChevronLeft, ChevronRight, Settings, User, ListChecks, CalendarRange } from 'lucide-react';
 
 export default function APanel({ panelAcik, setPanelAcik }) {
     const location = useLocation();
@@ -103,6 +103,16 @@ export default function APanel({ panelAcik, setPanelAcik }) {
                     <Link to="/admin/dersler" onClick={() => setMobilAcik(false)} className={linkStili("/admin/dersler")} title="Ders Yönetimi">
                         <BookOpen size={20} className="shrink-0" />
                         {panelAcik && <span className="truncate">Ders Yönetimi</span>}
+                    </Link>
+
+                    <Link to="/admin/konular" onClick={() => setMobilAcik(false)} className={linkStili("/admin/konular")} title="Dönem & Konu">
+                        <ListChecks size={20} className="shrink-0" />
+                        {panelAcik && <span className="truncate">Konu Yönetimi</span>}
+                    </Link>
+
+                    <Link to="/admin/donemler" onClick={() => setMobilAcik(false)} className={linkStili("/admin/donemler")} title="Dönem Yönetimi">
+                        <CalendarRange size={20} className="shrink-0" />
+                        {panelAcik && <span className="truncate">Dönem Yönetimi</span>}
                     </Link>
 
                     <Link to="/admin/linkler" onClick={() => setMobilAcik(false)} className={linkStili("/admin/linkler")} title="Link Yönetimi">

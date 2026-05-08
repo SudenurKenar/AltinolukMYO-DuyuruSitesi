@@ -9,6 +9,8 @@ export default function OdevGonder() {
         isim: '',
         soyisim: '',
         ders: '',
+        donem_id: '',
+        konu_id: '',
         aciklama: ''
     });
     const [dosya, setDosya] = useState(null);
@@ -16,26 +18,37 @@ export default function OdevGonder() {
     const [yuklemeYuzdesi, setYuklemeYuzdesi] = useState(0);
     const [yukleniyor, setYukleniyor] = useState(false);
     const [dosyaHazirlaniyor, setDosyaHazirlaniyor] = useState(false);
+
+    // Veritabanından gelecek listeler
     const [dersListesi, setDersListesi] = useState([]);
+    const [donemListesi, setDonemListesi] = useState([]);
+    const [konuListesi, setKonuListesi] = useState([]);
+
     const [surukleniyor, setSurukleniyor] = useState(false);
 
     useEffect(() => {
-        const dersleriGetir = async () => {
+        const verileriGetir = async () => {
             try {
-                const res = await axios.get('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdersler');
-                const aktifDersler = res.data.filter(d => d.durum === true || d.durum === 1);
-                setDersListesi(aktifDersler);
+                // Seçenekleri eş zamanlı olarak huzurunuza getiriyoruz
+                const [dersRes, donemRes, konuRes] = await Promise.all([
+                    axios.get('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdersler'),
+                    axios.get('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdonemler'),
+                    axios.get('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkkonular')
+                ]);
+
+                setDersListesi(dersRes.data.filter(d => d.durum === true || d.durum === 1));
+                setDonemListesi(donemRes.data.filter(d => d.durum === 'aktif'));
+                setKonuListesi(konuRes.data.filter(k => k.durum === 'aktif'));
             } catch (error) {
-                toast.error("Ders listesi yüklenirken bir aksilik çıktı!");
+                toast.error("Form seçenekleri yüklenirken bir aksilik çıktı!");
             }
         };
-        dersleriGetir();
+        verileriGetir();
     }, []);
 
     const handleHarfChange = (e, alan, etiket) => {
         const value = e.target.value;
         const gecersizKarakter = /[^a-zA-ZğüşıöçĞÜŞİÖÇ ]/g;
-
         if (gecersizKarakter.test(value)) {
             toast.error(`${etiket} alanına sadece harf girebilirsiniz!`, { id: 'karakter-hatasi' });
             return;
@@ -58,19 +71,18 @@ export default function OdevGonder() {
 
     const dosyaIsle = (secilenDosya) => {
         if (!secilenDosya) return;
-
         const dosyaAdi = secilenDosya.name.toLowerCase();
         const gecerliUzantilar = [".pdf", ".zip", ".rar"];
         const uzantiKontrol = gecerliUzantilar.some(u => dosyaAdi.endsWith(u));
 
         if (!uzantiKontrol) {
-            toast.error("Yalnızca PDF, ZIP veya RAR formatında ödev kabul edilmektedir!", { id: 'dosya-tipi-hatasi' });
+            toast.error("Yalnızca PDF, ZIP veya RAR formatında ödev kabul edilmektedir!");
             setDosya(null);
             return;
         }
 
         if (secilenDosya.size > 200 * 1024 * 1024) {
-            toast.error("Dosya boyutu 200MB sınırını aşamaz!", { id: 'boyut-hatasi' });
+            toast.error("Dosya boyutu 200MB sınırını aşamaz!");
             setDosya(null);
             return;
         }
@@ -93,31 +105,12 @@ export default function OdevGonder() {
 
     const handleFileChange = (e) => {
         dosyaIsle(e.target.files[0]);
-        e.target.value = ""; // Aynı dosyayı tekrar seçebilmek için input'u temizler
+        e.target.value = "";
     };
 
-    // --- SÜRÜKLE BIRAK (DRAG & DROP) OLAYLARI ---
-    const handleDragOver = (e) => {
-        e.preventDefault(); // Tarayıcının dosyayı yeni sekmede açmasını engeller
-        if (!yukleniyor && !dosyaHazirlaniyor) {
-            setSurukleniyor(true);
-        }
-    };
-
-    const handleDragLeave = (e) => {
-        e.preventDefault();
-        setSurukleniyor(false);
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setSurukleniyor(false);
-        if (!yukleniyor && !dosyaHazirlaniyor) {
-            const droppedFile = e.dataTransfer.files[0];
-            dosyaIsle(droppedFile);
-        }
-    };
-    // --------------------------------------------
+    const handleDragOver = (e) => { e.preventDefault(); if (!yukleniyor && !dosyaHazirlaniyor) setSurukleniyor(true); };
+    const handleDragLeave = (e) => { e.preventDefault(); setSurukleniyor(false); };
+    const handleDrop = (e) => { e.preventDefault(); setSurukleniyor(false); if (!yukleniyor && !dosyaHazirlaniyor) dosyaIsle(e.dataTransfer.files[0]); };
 
     const odeviGonder = async () => {
         const formData = new FormData();
@@ -125,21 +118,20 @@ export default function OdevGonder() {
         formData.append('isim', form.isim);
         formData.append('soyisim', form.soyisim);
         formData.append('ders', form.ders);
+        formData.append('donem_id', form.donem_id);
+        formData.append('konu_id', form.konu_id);
         formData.append('aciklama', form.aciklama);
 
-        if (dosya) {
-            formData.append('odev_dosyasi', dosya);
-        }
+        if (dosya) formData.append('odev_dosyasi', dosya);
 
         setYukleniyor(true);
         const toastId = toast.loading("Ödeviniz saraya teslim ediliyor...");
 
         try {
             const res = await axios.post('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkodevler', formData);
-
             if (res.data.success) {
                 toast.success("Ödev başarıyla gönderildi.", { id: toastId });
-                setForm({ no: '', isim: '', soyisim: '', ders: '', aciklama: '' });
+                setForm({ no: '', isim: '', soyisim: '', ders: '', donem_id: '', konu_id: '', aciklama: '' });
                 setDosya(null);
                 setYuklemeYuzdesi(0);
                 setModalAcik(false);
@@ -153,8 +145,15 @@ export default function OdevGonder() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
         if (!form.no || form.no.length < 12) return toast.error("Numara 12 hane olmalıdır.");
-        if (!form.isim || !form.soyisim || !form.ders) return toast.error("Zorunlu alanları doldurunuz.");
+        if (!form.isim || !form.soyisim || !form.ders || !form.donem_id || !form.konu_id) {
+            return toast.error("Lütfen tüm zorunlu (*) alanları doldurunuz.");
+        }
+
+        if (!dosya && (!form.aciklama || form.aciklama.trim() === "")) {
+            return toast.error("Ödev boş gönderilemez! Lütfen ya bir dosya ekleyin ya da bir açıklama yazın.");
+        }
 
         if (!dosya) {
             setModalAcik(true);
@@ -174,125 +173,95 @@ export default function OdevGonder() {
                     </div>
                 )}
 
-                <h2 className="text-xl md:text-2xl font-black text-[#1e3a5a] mb-6 text-center italic border-b-2 border-cyan-500 pb-4 tracking-tight">
+                <h2 className="text-xl md:text-2xl font-black text-[#1e3a5a] mb-6 text-center italic border-b-2 border-cyan-500 pb-4 tracking-tight uppercase">
                     Ödev Teslim Formu
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
-                    {/* Öğrenci No */}
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">
-                            Öğrenci Numarası <span className="text-red-500 text-xs ml-0.5">*</span>
-                        </label>
-                        <input type="text" value={form.no} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all" onChange={handleNoChange} disabled={yukleniyor || dosyaHazirlaniyor} />
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Öğrenci Numarası <span className="text-red-500">*</span></label>
+                        <input type="text" value={form.no} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all" placeholder="12 Haneli Numaranız" onChange={handleNoChange} disabled={yukleniyor || dosyaHazirlaniyor} />
                     </div>
 
-                    {/* Ad Soyad */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">
-                                Ad <span className="text-red-500 text-xs ml-0.5">*</span>
-                            </label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Ad <span className="text-red-500">*</span></label>
                             <input type="text" value={form.isim} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm font-semibold transition-all" onChange={(e) => handleHarfChange(e, 'isim', 'Ad')} disabled={yukleniyor || dosyaHazirlaniyor} />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">
-                                Soyad <span className="text-red-500 text-xs ml-0.5">*</span>
-                            </label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Soyad <span className="text-red-500">*</span></label>
                             <input type="text" value={form.soyisim} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm font-semibold transition-all" onChange={(e) => handleHarfChange(e, 'soyisim', 'Soyad')} disabled={yukleniyor || dosyaHazirlaniyor} />
                         </div>
                     </div>
 
-                    {/* Ders Seçimi */}
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">
-                            Ders Seçiniz <span className="text-red-500 text-xs ml-0.5">*</span>
-                        </label>
-                        <select
-                            value={form.ders}
-                            className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer"
-                            onChange={(e) => setForm({ ...form, ders: e.target.value })}
-                            disabled={yukleniyor || dosyaHazirlaniyor}
-                        >
-                            <option value="">Lütfen listeden bir ders seçin...</option>
-                            {dersListesi.map((d) => (
-                                <option key={d.id} value={d.ders}>
-                                    {d.ders}
-                                </option>
-                            ))}
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">İlgili Ders <span className="text-red-500">*</span></label>
+                        <select value={form.ders} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer" onChange={(e) => setForm({ ...form, ders: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor}>
+                            <option value="">Lütfen ders seçiniz...</option>
+                            {dersListesi.map((d) => <option key={d.id} value={d.ders}>{d.ders}</option>)}
                         </select>
                     </div>
 
-                    {/* Sürükle Bırak Alanı */}
-                    <div
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Dönem <span className="text-red-500">*</span></label>
+                            <select value={form.donem_id} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer" onChange={(e) => setForm({ ...form, donem_id: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor}>
+                                <option value="">Dönem seçiniz...</option>
+                                {donemListesi.map((dn) => <option key={dn.id} value={dn.id}>{dn.donem_adi.toUpperCase()}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Ödev Konusu <span className="text-red-500">*</span></label>
+                            <select value={form.konu_id} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer" onChange={(e) => setForm({ ...form, konu_id: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor}>
+                                <option value="">Konu seçiniz...</option>
+                                {konuListesi.map((kn) => <option key={kn.id} value={kn.id}>{kn.konu_adi}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
                         className={`border-2 border-dashed p-10 rounded-2xl text-center transition-all duration-300 relative
                             ${surukleniyor ? 'border-cyan-500 bg-cyan-100 scale-[1.02] shadow-inner' :
                                 dosya ? 'border-cyan-500 bg-cyan-50/30' : 'border-cyan-100 bg-cyan-50/20'}`}
                     >
-                        {/* Dosya Silme Çarpısı */}
                         {dosya && !yukleniyor && !dosyaHazirlaniyor && (
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDosya(null);
-                                    setYuklemeYuzdesi(0);
-                                }}
-                                className="absolute top-3 right-3 p-1.5 bg-red-50 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors z-20"
-                            >
+                            <button type="button" onClick={(e) => { e.stopPropagation(); setDosya(null); setYuklemeYuzdesi(0); }}
+                                className="absolute top-3 right-3 p-1.5 bg-red-50 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-colors z-20">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         )}
-
-                        {/* Görünmez arka plan katmanı - Sürüklerken ekstra vurgu için */}
-                        {surukleniyor && (
-                            <div className="absolute inset-0 bg-cyan-500/5 rounded-2xl pointer-events-none animate-pulse"></div>
-                        )}
-
                         <label className="cursor-pointer group relative z-10 flex flex-col items-center justify-center">
-                            <span className="text-cyan-700 font-bold block mb-3 text-xs md:text-sm transition-all">
-                                {dosya ? `Sistemdeki Dosya: ${dosya.name}` : surukleniyor ? "Belgeyi Buraya Bırakın..." : "Sürükleyip Bırakın veya Seçin (Maks 200MB)"}
+                            <span className="text-cyan-700 font-bold block mb-3 text-xs md:text-sm transition-all uppercase tracking-tight">
+                                {dosya ? `Sistem Arşivine Hazır: ${dosya.name}` : surukleniyor ? "Belgeyi Buraya Bırakın..." : "Ödev Dosyanızı Buraya Sürükleyin veya Seçin (PDF, ZIP, RAR / Maks 200MB)"}
                             </span>
-
                             {(dosyaHazirlaniyor || yukleniyor) && (
-                                <div className="text-5xl font-black text-cyan-600 animate-pulse mb-3">
-                                    %{yuklemeYuzdesi}
-                                </div>
+                                <div className="text-5xl font-black text-cyan-600 animate-pulse mb-3">%{yuklemeYuzdesi}</div>
                             )}
-
                             <input type="file" className="hidden" accept=".pdf,.zip,.rar" onChange={handleFileChange} disabled={yukleniyor || dosyaHazirlaniyor} />
-
                             {!yukleniyor && !dosyaHazirlaniyor && !surukleniyor && !dosya && (
-                                <div className="inline-block px-8 py-2.5 bg-white border border-cyan-200 rounded-xl text-[10px] font-black text-cyan-600 uppercase tracking-widest hover:bg-cyan-600 hover:text-white transition-all shadow-sm">
-                                    Dosya Seç
-                                </div>
+                                <div className="inline-block px-8 py-2.5 bg-white border border-cyan-200 rounded-xl text-[10px] font-black text-cyan-600 uppercase tracking-widest hover:bg-cyan-600 hover:text-white transition-all shadow-sm">Dosya Seç</div>
                             )}
                         </label>
                     </div>
 
-                    {/* Açıklama */}
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Ek Açıklamalar</label>
-                        <textarea value={form.aciklama} rows="3" className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none resize-none text-sm transition-all" onChange={(e) => setForm({ ...form, aciklama: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor} />
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Öğrenci Notu / Açıklama</label>
+                        <textarea value={form.aciklama} rows="3" className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none resize-none text-sm transition-all focus:ring-2 focus:ring-cyan-500/10" placeholder="Dosya eklemeyecekseniz buraya açıklama yazmanız mecburidir..." onChange={(e) => setForm({ ...form, aciklama: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor} />
                     </div>
 
-                    <button type="submit"
-                        disabled={yukleniyor || dosyaHazirlaniyor}
+                    <button type="submit" disabled={yukleniyor || dosyaHazirlaniyor}
                         className={`w-full py-4 rounded-2xl font-black transition-all shadow-lg mt-4 uppercase tracking-[0.2em] text-xs
                         ${(yukleniyor || dosyaHazirlaniyor) ? 'bg-slate-300 cursor-not-allowed shadow-none text-slate-500' : 'bg-cyan-600 text-white hover:bg-cyan-700 active:scale-95 shadow-cyan-100'}`}>
-                        {dosyaHazirlaniyor ? "Dosya İnceleniyor..." : yukleniyor ? "Teslim Ediliyor..." : "Ödevi Teslim Et"}
+                        {dosyaHazirlaniyor ? "Dosya İnceleniyor..." : yukleniyor ? "Teslim Ediliyor..." : "Ödevi Sisteme Gönder"}
                     </button>
                 </form>
             </div>
 
             <OnayModali acikMi={modalAcik} kapat={() => setModalAcik(false)} onayla={odeviGonder}
-                baslik="Eksik Dosya Onayı" mesaj="Herhangi bir dosya eki algılanamadı. İşleme devam edilsin mi?"
-                onayMetni="Gönder" iptalMetni="Geri Dön" />
+                baslik="Dosya Eki Eksik" mesaj="Belge yüklemeden sadece açıklama notu ile devam ediyorsunuz. Onaylıyor musunuz?"
+                onayMetni="Evet, Gönder" iptalMetni="Dosya Seç" />
         </div>
     );
 }
