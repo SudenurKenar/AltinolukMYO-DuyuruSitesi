@@ -14,6 +14,8 @@ import LinkYonetimi from "./Sayfalar/LinkYonetimi";
 import AdminProfil from "./Sayfalar/AdminProfil";
 import AdminKonu from "./Sayfalar/AdminKonu";
 import AdminDonem from "./Sayfalar/AdminDonem";
+import AdminMenuYonetimi from "./Sayfalar/AdminMenuYonetimi";
+import LinkMenu from "./Sayfalar/LinkMenu";
 
 function App() {
   return (
@@ -24,6 +26,7 @@ function App() {
       {/* ========================================== */}
       <Route path="/" element={<AnaLayout><Anasayfa /></AnaLayout>} />
       <Route path="/giris" element={<AnaLayout><GirisYap /></AnaLayout>} />
+      <Route path="/linkmenu" element={<AnaLayout><LinkMenu /></AnaLayout>} />
       <Route path="*" element={<AnaLayout><SayfaBulunamadi /></AnaLayout>} />
       <Route path="/detay/:id/:slug" element={<DuyuruDetay />} />
       <Route path="/OdevGonder" element={<AnaLayout><OdevGonder /></AnaLayout>} />
@@ -41,6 +44,7 @@ function App() {
         <Route path="profil" element={<AdminProfil />} />
         <Route path="konular" element={<AdminKonu />} />
         <Route path="donemler" element={<AdminDonem />} />
+        <Route path="menuyonetimi" element={<AdminMenuYonetimi />} />
 
       </Route>
     </Routes>

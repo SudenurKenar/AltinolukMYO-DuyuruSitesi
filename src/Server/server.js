@@ -399,6 +399,67 @@ app.delete('/api/sktkkonular-sil/:id', async (req, res) => {
     }
 });
 
+// ==================== MENÜ LİNK SİSTEMİ (sktkmenu) ====================
+
+app.get('/api/menu', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM sktkmenu ORDER BY sira ASC');
+        res.status(200).json(result.rows);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/menu', async (req, res) => {
+    const { baslik, link } = req.body;
+    if (!baslik || !link) {
+        return res.status(400).json({ success: false, message: "Başlık ve link boş bırakılamaz." });
+    }
+    try {
+        const maxSiraResult = await db.query('SELECT COALESCE(MAX(sira), 0) AS max_sira FROM sktkmenu');
+        const yeniSira = maxSiraResult.rows[0].max_sira + 1;
+
+        const yeniEleman = await db.query(
+            'INSERT INTO sktkmenu (baslik, link, sira) VALUES ($1, $2, $3) RETURNING *',
+            [baslik.trim(), link.trim(), yeniSira]
+        );
+        res.status(201).json({ success: true, data: yeniEleman.rows[0] });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.put('/api/menu/sira', async (req, res) => {
+    const { yeniSiralama } = req.body;
+    try {
+        await db.query('BEGIN');
+        for (let eleman of yeniSiralama) {
+            await db.query(
+                'UPDATE sktkmenu SET sira = $1 WHERE id = $2',
+                [eleman.sira, eleman.id]
+            );
+        }
+        await db.query('COMMIT');
+        res.status(200).json({ success: true, message: 'Menü sıralaması başarıyla güncellendi!' });
+    } catch (error) {
+        await db.query('ROLLBACK');
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.delete('/api/menu/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.query('DELETE FROM sktkmenu WHERE id = $1 RETURNING *', [id]);
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, message: "Menü elemanı silindi." });
+        } else {
+            res.status(404).json({ success: false, message: "Eleman bulunamadı." });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`| SUNUCU AKTİF: Server running on port ${PORT} |`);

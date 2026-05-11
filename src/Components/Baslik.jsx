@@ -5,21 +5,27 @@ import logo from "../assets/logo.svg";
 export default function Baslik() {
     const navigate = useNavigate();
     const dropdownRef = useRef(null);
+    const sitesDropdownRef = useRef(null); // Siteler dropdown'ı için ref
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isSitesOpen, setIsSitesOpen] = useState(false); // Siteler menüsü açık/kapalı state'i
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    // Veritabanından gelecek linkler için state
+    // Sabit linkler için state
     const [dynamicLinks, setDynamicLinks] = useState({
         link1: "#", // İletişim
         link2: "#"  // Rapor Formatı
     });
 
+    // Admin panelden girilen ve sırayla gelecek olan dinamik menü siteleri
+    const [menuSites, setMenuSites] = useState([]);
+
     useEffect(() => {
         // Oturum kontrolü
         setIsLoggedIn(sessionStorage.getItem("isLoggedIn") === "true");
 
-        // Backend'den güncel linkleri çekme fonksiyonu
+        // Backend'den güncel sabit linkleri çekme
         const fetchLinks = async () => {
             try {
                 const response = await fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktklinkler');
@@ -35,12 +41,30 @@ export default function Baslik() {
             }
         };
 
-        fetchLinks();
+        // Admin panelden girilen dinamik menü elemanlarını çekme
+        const fetchMenuSites = async () => {
+            try {
+                const response = await fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/menu');
+                if (response.ok) {
+                    const data = await response.json();
+                    // Backend zaten 'ORDER BY sira ASC' ile gönderiyor
+                    setMenuSites(data);
+                }
+            } catch (error) {
+                console.error("Menü siteleri çekilirken hata oluştu:", error);
+            }
+        };
 
-        // Dışarı tıklayınca dropdown kapatma
+        fetchLinks();
+        fetchMenuSites();
+
+        // Dışarı tıklayınca dropdown'ları kapatma sihirbazı
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setIsDropdownOpen(false);
+            }
+            if (sitesDropdownRef.current && !sitesDropdownRef.current.contains(e.target)) {
+                setIsSitesOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -55,8 +79,8 @@ export default function Baslik() {
     };
 
     // Stil Sabitleri
-    const navItemStyle = "h-full px-4 flex items-center font-sans text-cyan-700 hover:text-white hover:bg-cyan-600 font-bold text-xs transition-all duration-300 cursor-pointer";
-    const dividerStyle = "w-[1px] h-4 bg-cyan-500/30";
+    const navItemStyle = "h-full px-4 flex items-center font-sans text-cyan-700 hover:text-white hover:bg-cyan-600 font-bold text-xs transition-all duration-300 cursor-pointer text-center";
+    const dividerStyle = "w-[1px] h-4 bg-cyan-500/30 shrink-0";
 
     return (
         <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-cyan-100 shadow-sm text-slate-700">
@@ -89,8 +113,45 @@ export default function Baslik() {
 
                     {/* Masaüstü Navigasyon */}
                     <div className="flex items-center gap-4">
-                        <nav className="hidden sm:flex items-center h-10 border-2 border-cyan-500/30 rounded-full bg-cyan-50/10 shadow-sm overflow-hidden">
+                        <nav className="hidden sm:flex items-center h-10 border-2 border-cyan-500/30 rounded-full bg-cyan-50/10 shadow-sm overflow-visible pr-2">
                             <button onClick={() => navigate("/OdevGonder")} className={navItemStyle}>Ödev Gönder</button>
+                            <div className={dividerStyle}></div>
+
+                            {/* Masaüstü "Siteler" Dropdown Butonu */}
+                            <div className="relative h-full" ref={sitesDropdownRef}>
+                                <button
+                                    onClick={() => setIsSitesOpen(!isSitesOpen)}
+                                    className={`${navItemStyle} gap-1 flex items-center`}
+                                >
+                                    <span>Siteler</span>
+                                    <svg className={`w-3 h-3 transition-transform duration-300 ${isSitesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 9l-7 7-7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                </button>
+
+                                {/* Siteler Açılır Pencere (Sadece Başlıklar Görünür, Sıralı) */}
+                                <div className={`absolute left-1/2 -translate-x-1/2 mt-3 w-56 bg-white border border-cyan-100 rounded-2xl shadow-xl transition-all origin-top ${isSitesOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                                    <div className="p-2 space-y-1 max-h-64 overflow-y-auto custom-scrollbar">
+                                        {menuSites.length > 0 ? (
+                                            menuSites.map((site) => (
+                                                <a
+                                                    key={site.id}
+                                                    href={site.link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="block w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 rounded-xl transition-colors"
+                                                    onClick={() => setIsSitesOpen(false)}
+                                                >
+                                                    {site.baslik}
+                                                </a>
+                                            ))
+                                        ) : (
+                                            <span className="block px-4 py-2.5 text-xs text-slate-400 font-medium italic text-center">Site eklenmemiş</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className={dividerStyle}></div>
                             <a href={dynamicLinks.link2} target="_blank" rel="noopener noreferrer" className={navItemStyle}>Rapor Formatı</a>
                             <div className={dividerStyle}></div>
@@ -107,7 +168,7 @@ export default function Baslik() {
                                     >
                                         <span>Yönetici</span>
                                         <svg className={`w-4 h-4 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M19 9l-7 7-7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                     </button>
                                     <div className={`absolute right-0 mt-3 w-48 bg-white border border-cyan-50 rounded-2xl shadow-xl transition-all origin-top-right ${isDropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
@@ -147,7 +208,7 @@ export default function Baslik() {
             </div>
 
             {/* Mobil Menü İçeriği */}
-            <div className={`lg:hidden overflow-hidden transition-all duration-500 ease-in-out bg-white/95 backdrop-blur-md ${isMenuOpen ? "max-h-[600px] border-b border-cyan-100 opacity-100" : "max-h-0 opacity-0"}`}>
+            <div className={`lg:hidden overflow-hidden transition-all duration-500 ease-in-out bg-white/95 backdrop-blur-md ${isMenuOpen ? "max-h-[650px] border-b border-cyan-100 opacity-100" : "max-h-0 opacity-0"}`}>
                 <nav className="flex flex-col p-6 space-y-3">
                     <button
                         onClick={() => { navigate("/OdevGonder"); setIsMenuOpen(false); }}
@@ -155,6 +216,19 @@ export default function Baslik() {
                     >
                         Ödev Gönder
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </button>
+
+                    {/* Mobil "Siteler" Butonu (linkmenu.jsx sayfasına yönlendirir) */}
+                    <button
+                        onClick={() => { navigate("/linkmenu"); setIsMenuOpen(false); }}
+                        className="flex items-center gap-4 px-6 py-4 text-slate-600 font-bold text-sm hover:bg-slate-50 rounded-2xl transition-all border border-transparent active:border-slate-100 text-left w-full"
+                    >
+                        <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </div>
+                        Siteler
                     </button>
 
                     <a href={dynamicLinks.link2} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 px-6 py-4 text-slate-600 font-bold text-sm hover:bg-slate-50 rounded-2xl transition-all border border-transparent active:border-slate-100">
