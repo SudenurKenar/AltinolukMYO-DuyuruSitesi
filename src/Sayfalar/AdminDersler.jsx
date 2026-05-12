@@ -111,11 +111,9 @@ export default function AdminDersler() {
             {/* Yönetim Listesi */}
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl overflow-hidden">
                 <div className="overflow-x-auto">
-
                     <table className="w-full text-sm text-left border-collapse table-fixed min-w-[700px]">
                         <thead className="bg-slate-50/50">
                             <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-
                                 <th className="w-[15%] px-8 py-6">Kimlik No</th>
                                 <th className="w-[45%] px-8 py-6">Ders Adı</th>
                                 <th className="w-[20%] px-8 py-6 text-center">Durum</th>
@@ -137,9 +135,9 @@ export default function AdminDersler() {
                                                 autoFocus
                                             />
                                         ) : (
-
                                             <div className="max-w-[300px] overflow-x-auto custom-scrollbar-mini pb-1">
-                                                <span className={`font-bold uppercase tracking-tight whitespace-nowrap ${!d.durum ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
+                                                {/* Düzenleme Yapıldı: "uppercase" sınıfı kaldırıldı, girdinin orijinal hali korundu */}
+                                                <span className={`font-bold tracking-tight whitespace-nowrap ${!d.durum ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
                                                     {d.ders}
                                                 </span>
                                             </div>
@@ -176,7 +174,6 @@ export default function AdminDersler() {
                     </table>
                 </div>
             </div>
-
 
             <OnayModali
                 acikMi={silmeModaliAcik}

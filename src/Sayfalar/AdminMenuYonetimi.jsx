@@ -236,7 +236,8 @@ export default function AdminMenuYonetimi() {
                                                                 />
                                                             ) : (
                                                                 <div className="max-w-[220px] overflow-hidden text-ellipsis whitespace-nowrap">
-                                                                    <span className="font-bold uppercase tracking-tight text-slate-700">
+                                                                    {/* Kural İhlali Çözüldü: "uppercase" sınıfı kaldırıldı, artık metin girildiği gibi doğal kalacak */}
+                                                                    <span className="font-bold tracking-tight text-slate-700">
                                                                         {s.baslik}
                                                                     </span>
                                                                 </div>
