@@ -78,13 +78,14 @@ export default function AdminMenuYonetimi() {
             return toast.error("Başlık ve Link boş olamaz.");
         }
         try {
-            await axios.post(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/menu`, {
+            await axios.put(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/menu/${id}`, {
                 baslik: duzenlemeBaslik,
                 link: duzenlemeLink
             });
+
             setDuzenlemeId(null);
             siteleriGetir();
-            toast.success("Site bilgileri güncellendi.");
+            toast.success("Site bilgileri başarıyla güncellendi.");
         } catch (error) {
             toast.error("Güncelleme hatası.");
         }
@@ -201,8 +202,8 @@ export default function AdminMenuYonetimi() {
                                                         ref={provided.innerRef}
                                                         {...provided.draggableProps}
                                                         className={`group transition-colors border-b border-slate-100/70 ${snapshot.isDragging
-                                                                ? 'bg-cyan-50/60 shadow-md display-table'
-                                                                : 'hover:bg-cyan-50/20 bg-white'
+                                                            ? 'bg-cyan-50/60 shadow-md display-table'
+                                                            : 'hover:bg-cyan-50/20 bg-white'
                                                             }`}
                                                     >
                                                         {/* 1. SÜREKLEME TUTAÇ ALANI (Farenin tutacağı yer ikonik simge) */}

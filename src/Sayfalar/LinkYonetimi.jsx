@@ -66,7 +66,8 @@ export default function LinkYonetimi() {
     }
 
     return (
-        <div className="p-4 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        /* Süzülme efekti veren animasyon sınıfları bu satırdan tamamen temizlendi */
+        <div className="p-4 md:p-8">
             <div className="max-w-3xl mx-auto">
                 {/* Başlık Bölümü */}
                 <div className="mb-10">

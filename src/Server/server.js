@@ -447,6 +447,25 @@ app.put('/api/menu/sira', async (req, res) => {
     }
 });
 
+// server.js içerisine eklenecek olan eleman güncelleme rotası:
+app.put('/api/menu/:id', async (req, res) => {
+    const { id } = req.params;
+    const { baslik, link } = req.body;
+    try {
+        const result = await db.query(
+            'UPDATE sktkmenu SET baslik = $1, link = $2 WHERE id = $3 RETURNING *',
+            [baslik.trim(), link.trim(), id]
+        );
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, data: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Eleman bulunamadı." });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 app.delete('/api/menu/:id', async (req, res) => {
     const { id } = req.params;
     try {

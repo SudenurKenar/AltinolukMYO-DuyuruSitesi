@@ -5,27 +5,23 @@ import logo from "../assets/logo.svg";
 export default function Baslik() {
     const navigate = useNavigate();
     const dropdownRef = useRef(null);
-    const sitesDropdownRef = useRef(null); // Siteler dropdown'ı için ref
+    const sitesDropdownRef = useRef(null);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isSitesOpen, setIsSitesOpen] = useState(false); // Siteler menüsü açık/kapalı state'i
+    const [isSitesOpen, setIsSitesOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    // Sabit linkler için state
     const [dynamicLinks, setDynamicLinks] = useState({
-        link1: "#", // İletişim
-        link2: "#"  // Rapor Formatı
+        link1: "#",
+        link2: "#"
     });
 
-    // Admin panelden girilen ve sırayla gelecek olan dinamik menü siteleri
     const [menuSites, setMenuSites] = useState([]);
 
     useEffect(() => {
-        // Oturum kontrolü
         setIsLoggedIn(sessionStorage.getItem("isLoggedIn") === "true");
 
-        // Backend'den güncel sabit linkleri çekme
         const fetchLinks = async () => {
             try {
                 const response = await fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktklinkler');
@@ -41,13 +37,11 @@ export default function Baslik() {
             }
         };
 
-        // Admin panelden girilen dinamik menü elemanlarını çekme
         const fetchMenuSites = async () => {
             try {
                 const response = await fetch('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/menu');
                 if (response.ok) {
                     const data = await response.json();
-                    // Backend zaten 'ORDER BY sira ASC' ile gönderiyor
                     setMenuSites(data);
                 }
             } catch (error) {
@@ -58,7 +52,6 @@ export default function Baslik() {
         fetchLinks();
         fetchMenuSites();
 
-        // Dışarı tıklayınca dropdown'ları kapatma sihirbazı
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setIsDropdownOpen(false);
@@ -78,8 +71,7 @@ export default function Baslik() {
         window.location.reload();
     };
 
-    // Stil Sabitleri
-    const navItemStyle = "h-full px-4 flex items-center font-sans text-cyan-700 hover:text-white hover:bg-cyan-600 font-bold text-xs transition-all duration-300 cursor-pointer text-center";
+    const navItemStyle = "self-stretch px-4 flex items-center font-sans text-cyan-700 hover:text-white hover:bg-cyan-600 font-bold text-xs transition-all duration-300 cursor-pointer";
     const dividerStyle = "w-[1px] h-4 bg-cyan-500/30 shrink-0";
 
     return (
@@ -99,7 +91,6 @@ export default function Baslik() {
                                 className="w-full h-full object-contain p-1 transition-transform duration-500 group-hover:scale-110"
                             />
                         </div>
-
                         <div className="flex flex-col">
                             <h1 className="text-lg md:text-xl font-bold text-cyan-900 leading-none flex items-baseline gap-1">
                                 <span>ALTINOLUK <span className="text-cyan-600">MYO</span></span>
@@ -113,50 +104,65 @@ export default function Baslik() {
 
                     {/* Masaüstü Navigasyon */}
                     <div className="flex items-center gap-4">
-                        <nav className="hidden sm:flex items-center h-10 border-2 border-cyan-500/30 rounded-full bg-cyan-50/10 shadow-sm overflow-visible pr-2">
-                            <button onClick={() => navigate("/OdevGonder")} className={navItemStyle}>Ödev Gönder</button>
-                            <div className={dividerStyle}></div>
 
-                            {/* Masaüstü "Siteler" Dropdown Butonu */}
-                            <div className="relative h-full" ref={sitesDropdownRef}>
+                        {/* Siteler dropdown için dış wrapper - nav'ın dışında kalır, overflow-hidden'dan etkilenmez */}
+                        <div className="hidden sm:flex items-center relative" ref={sitesDropdownRef}>
+                            <nav className="flex items-center h-10 border-2 border-cyan-500/30 rounded-full bg-cyan-50/10 shadow-sm overflow-hidden">
+                                <button onClick={() => navigate("/OdevGonder")} className={navItemStyle}>
+                                    Ödev Gönder
+                                </button>
+                                <div className={dividerStyle}></div>
+
+                                {/* Siteler butonu nav içinde */}
                                 <button
                                     onClick={() => setIsSitesOpen(!isSitesOpen)}
-                                    className={`${navItemStyle} gap-1 flex items-center`}
+                                    className={`${navItemStyle} gap-1`}
                                 >
                                     <span>Siteler</span>
-                                    <svg className={`w-3 h-3 transition-transform duration-300 ${isSitesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg
+                                        className={`w-3 h-3 transition-transform duration-300 ${isSitesOpen ? 'rotate-180' : ''}`}
+                                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    >
                                         <path d="M19 9l-7 7-7-7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </button>
 
-                                {/* Siteler Açılır Pencere (Sadece Başlıklar Görünür, Sıralı) */}
-                                <div className={`absolute left-1/2 -translate-x-1/2 mt-3 w-56 bg-white border border-cyan-100 rounded-2xl shadow-xl transition-all origin-top ${isSitesOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
-                                    <div className="p-2 space-y-1 max-h-64 overflow-y-auto custom-scrollbar">
-                                        {menuSites.length > 0 ? (
-                                            menuSites.map((site) => (
-                                                <a
-                                                    key={site.id}
-                                                    href={site.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="block w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 rounded-xl transition-colors"
-                                                    onClick={() => setIsSitesOpen(false)}
-                                                >
-                                                    {site.baslik}
-                                                </a>
-                                            ))
-                                        ) : (
-                                            <span className="block px-4 py-2.5 text-xs text-slate-400 font-medium italic text-center">Site eklenmemiş</span>
-                                        )}
-                                    </div>
+                                <div className={dividerStyle}></div>
+                                <a href={dynamicLinks.link2} target="_blank" rel="noopener noreferrer" className={navItemStyle}>
+                                    Rapor Formatı
+                                </a>
+                                <div className={dividerStyle}></div>
+                                <a href={dynamicLinks.link1} target="_blank" rel="noopener noreferrer" className={navItemStyle}>
+                                    İletişim
+                                </a>
+                            </nav>
+
+                            {/* Siteler Dropdown - nav DIŞINDA, overflow-hidden'dan etkilenmez */}
+                            <div
+                                className={`absolute left-[90px] top-full mt-3 w-56 bg-white border border-cyan-100 rounded-2xl shadow-xl transition-all duration-200 origin-top z-50 ${isSitesOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}
+                            >
+                                <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
+                                    {menuSites.length > 0 ? (
+                                        menuSites.map((site) => (
+                                            <a
+                                                key={site.id}
+                                                href={site.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 rounded-xl transition-colors"
+                                                onClick={() => setIsSitesOpen(false)}
+                                            >
+                                                {site.baslik}
+                                            </a>
+                                        ))
+                                    ) : (
+                                        <span className="block px-4 py-2.5 text-xs text-slate-400 font-medium italic text-center">
+                                            Site eklenmemiş
+                                        </span>
+                                    )}
                                 </div>
                             </div>
-
-                            <div className={dividerStyle}></div>
-                            <a href={dynamicLinks.link2} target="_blank" rel="noopener noreferrer" className={navItemStyle}>Rapor Formatı</a>
-                            <div className={dividerStyle}></div>
-                            <a href={dynamicLinks.link1} target="_blank" rel="noopener noreferrer" className={navItemStyle}>İletişim</a>
-                        </nav>
+                        </div>
 
                         {/* Yönetici Dropdown / Giriş Butonu */}
                         <div className="relative hidden lg:block" ref={dropdownRef}>
@@ -218,7 +224,6 @@ export default function Baslik() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </button>
 
-                    {/* Mobil "Siteler" Butonu (linkmenu.jsx sayfasına yönlendirir) */}
                     <button
                         onClick={() => { navigate("/linkmenu"); setIsMenuOpen(false); }}
                         className="flex items-center gap-4 px-6 py-4 text-slate-600 font-bold text-sm hover:bg-slate-50 rounded-2xl transition-all border border-transparent active:border-slate-100 text-left w-full"
