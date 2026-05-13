@@ -133,7 +133,7 @@ export default function AdminDonem() {
                     <table className="w-full text-sm text-left border-collapse table-fixed min-w-[700px]">
                         <thead className="bg-slate-50/50">
                             <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                <th className="w-[15%] px-8 py-6">Kimlik No</th>
+                                <th className="w-[15%] px-8 py-6">Dönem No</th>
                                 <th className="w-[45%] px-8 py-6">Dönem Adı</th>
                                 <th className="w-[20%] px-8 py-6 text-center">Durum</th>
                                 <th className="w-[20%] px-8 py-6 text-right">Yönetim</th>

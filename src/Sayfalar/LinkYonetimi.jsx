@@ -45,7 +45,7 @@ export default function LinkYonetimi() {
             const result = await response.json();
 
             if (result.success) {
-                setStatus({ type: 'success', message: 'Linkler başarıyla güncellendi.' });
+                setStatus({ type: 'success', message: 'Değişiklikler başarıyla canlıya aktarıldı ve yayınlandı.' });
             } else {
                 setStatus({ type: 'error', message: result.message || 'Bir hata oluştu.' });
             }

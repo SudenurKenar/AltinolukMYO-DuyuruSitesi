@@ -211,8 +211,8 @@ export default function AdminOdevler() {
                                     <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                                         <th className="w-[20%] px-6 md:px-8 py-6">Öğrenci Bilgisi</th>
                                         <th className="w-[25%] px-6 md:px-8 py-6 text-center">Ders / Dönem / Konu</th>
-                                        <th className="w-[25%] px-6 md:px-8 py-6">Öğrenci Notu</th>
-                                        <th className="w-[15%] px-6 md:px-8 py-6 text-left">Teslim Vakti</th>
+                                        <th className="w-[25%] px-6 md:px-8 py-6">Öğrenci Açıklaması</th>
+                                        <th className="w-[15%] px-6 md:px-8 py-6 text-left">Teslim Tarihi</th>
                                         <th className="w-[15%] px-6 md:px-8 py-6 text-right">İşlem</th>
                                     </tr>
                                 </thead>
@@ -235,7 +235,7 @@ export default function AdminOdevler() {
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1e3a5a]/40 backdrop-blur-md p-4 animate-in fade-in duration-500">
                     <div className="bg-white w-full max-w-5xl h-[90vh] rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative border-8 border-white">
                         <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center px-8 shrink-0">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Resmi Evrak Ön İzleme</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Doküman Ön İzleme</span>
                             <button onClick={() => setSeciliPdf(null)} className="bg-white text-slate-600 px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-slate-200 hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95 shadow-sm">Kapat</button>
                         </div>
                         <div className="flex-1 bg-slate-100 relative">

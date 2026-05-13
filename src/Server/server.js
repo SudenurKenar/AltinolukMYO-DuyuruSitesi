@@ -167,7 +167,7 @@ app.post('/api/sktkodevler', upload.single('odev_dosyasi'), async (req, res) => 
 
         res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
-        console.error("VERİTABANI FK HATASI:", error.message);
+        console.error("Ödev kayıt hatası:", error.message);
         res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -355,7 +355,7 @@ app.delete('/api/sktkdonem-sil/:id', async (req, res) => {
     }
 });
 
-// ==================== SABIKLI KONU SİSTEMİ (CİLALANMIŞ NİHAİ SÜRÜM) ====================
+// ==================== KONU SİSTEMİ====================
 
 app.get('/api/sktkkonular', async (req, res) => {
     try {
@@ -377,7 +377,7 @@ app.get('/api/sktkkonular', async (req, res) => {
         res.status(200).json(result.rows);
     } catch (err) {
         console.error("Konu Listeleme Hatası:", err.message);
-        res.status(500).json({ success: false, error: "Müfredat listesi getirilirken sunucu hatası oluştu." });
+        res.status(500).json({ success: false, error: "Konu listesi getirilirken sunucu hatası oluştu." });
     }
 });
 
@@ -412,8 +412,6 @@ app.put('/api/sktkkonular-guncelle/:id', async (req, res) => {
         if (!konu_adi || konu_adi.trim() === "" || !ders_id || !donem_id) {
             return res.status(400).json({ success: false, message: "Konu adı, ders ve dönem alanları boş bırakılamaz." });
         }
-
-        // CİLA: Üç alanı birden güncelleyen SQL sorgusu
         const query = `
             UPDATE sktkkonu 
             SET konu_adi = $1, ders_id = $2, donem_id = $3 

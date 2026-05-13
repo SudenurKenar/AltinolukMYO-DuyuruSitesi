@@ -33,7 +33,7 @@ export default function Baslik() {
                     });
                 }
             } catch (error) {
-                console.error("Linkler yüklenirken teknik bir aksaklık yaşandı:", error);
+                console.error("Bağlantı parametreleri sunucudan yüklenirken hata oluştu:", error);
             }
         };
 

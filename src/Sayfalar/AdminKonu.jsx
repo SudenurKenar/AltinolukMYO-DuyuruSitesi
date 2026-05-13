@@ -92,7 +92,7 @@ export default function AdminKonu() {
         try {
             const res = await axios.delete(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkkonular-sil/${silinecekId}`);
             if (res.data.success) {
-                toast.success("Konu resmi kayıtlardan silindi.");
+                toast.success("Konu müfredat kayıtlarından silindi.");
                 setSilmeModaliAcik(false);
                 verileriYukle();
             }
@@ -127,7 +127,6 @@ export default function AdminKonu() {
 
     return (
         <div className="max-w-6xl mx-auto py-10 px-6 font-sans text-left">
-            {/* CİLA: Ana çubuğu ve satır içi çubukları (custom-scrollbar-mini) incecik ve koyu mavi yapan asil CSS */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .ozel-scroll { scrollbar-width: thin; scrollbar-color: #1e3a5a transparent; } 
@@ -214,7 +213,6 @@ export default function AdminKonu() {
                                     <tr key={k.id} className={`group transition-all ${k.durum === 'pasif' ? 'bg-slate-50/60 opacity-70' : 'hover:bg-cyan-50/20'}`}>
                                         <td className="px-8 py-6 font-mono text-slate-400 text-[11px]">#{k.id}</td>
 
-                                        {/* Konu Başlığı Sütunu (Artık buradaki çubuk da cilalı ve incecik) */}
                                         <td className="px-8 py-6">
                                             {duzenlemeId === k.id ? (
                                                 <input
@@ -256,7 +254,6 @@ export default function AdminKonu() {
                                                 </div>
                                             ) : (
                                                 <div className="space-y-1.5 text-left">
-                                                    {/* CİLA: Maksimum 35 harf kısıtı (max-w-[35ch]) and asil ince sürgü tam burada aktif */}
                                                     <div className="max-w-[35ch] overflow-x-auto custom-scrollbar-mini pb-1">
                                                         <span className="block w-max px-3 py-1 bg-cyan-50 font-bold text-xs rounded-lg text-cyan-700 whitespace-nowrap">
                                                             {k.ders_adi || "Ders Atanmamış"}

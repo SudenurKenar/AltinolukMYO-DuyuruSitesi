@@ -23,19 +23,17 @@ export default function AdminDersler() {
             const res = await axios.get('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdersler');
             setDersler(res.data);
         } catch (error) {
-            toast.error("Veritabanı listesi yüklenemedi.");
+            toast.error("Ders listesi yüklenirken bir hata oluştu.");
         }
     };
 
     const dersEkle = async (e) => {
         e.preventDefault();
-        // CİLA: Boşlukları temizleyip kontrol ediyoruz
         const temizDers = yeniDers.trim();
         if (!temizDers) return toast.error("Ders tanımı boş bırakılamaz.");
 
         setYukleniyor(true);
         try {
-            // CİLA: Sunucuya tertemiz ve boşluksuz string fırlatıyoruz
             const res = await axios.post('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkders-ekle', { ders: temizDers });
             if (res.data.success) {
                 toast.success("Ders başarıyla kaydedildi.");
@@ -69,7 +67,7 @@ export default function AdminDersler() {
         try {
             const res = await axios.delete(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdersler/${silinecekId}`);
             if (res.data.success) {
-                toast.success("Ders resmi kayıtlardan silindi.");
+                toast.success("Ders müfredat kayıtlarından silindi.");
                 setSilmeModaliAcik(false);
                 dersleriGetir();
             }
@@ -122,7 +120,7 @@ export default function AdminDersler() {
                     <table className="w-full text-sm text-left border-collapse table-fixed min-w-[700px]">
                         <thead className="bg-slate-50/50">
                             <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                <th className="w-[15%] px-8 py-6">Kimlik No</th>
+                                <th className="w-[15%] px-8 py-6">Ders No</th>
                                 <th className="w-[45%] px-8 py-6">Ders Adı</th>
                                 <th className="w-[20%] px-8 py-6 text-center">Durum</th>
                                 <th className="w-[20%] px-8 py-6 text-right">Yönetim</th>

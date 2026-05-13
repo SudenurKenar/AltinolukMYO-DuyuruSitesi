@@ -119,7 +119,7 @@ export default function Anasayfa() {
                                 <LazyDuyuru key={b.id} b={b} borderClass="bg-cyan-600" btnHoverClass="hover:bg-cyan-600 hover:text-white" />
                             ))
                         ) : (
-                            <div className="p-10 text-center text-slate-300 italic text-sm">Arşivde sürekli duyuru bulunamadı.</div>
+                            <div className="p-10 text-center text-slate-300 italic text-sm">Henüz yayınlanmış bir sürekli duyuru bulunmuyor.</div>
                         )}
                     </div>
                     <SayfaNavigasyonu toplam={surekli.length} mevcut={surekliSayfa} setSayfa={setSurekliSayfa} aktifRenk="bg-cyan-600" duyuruBasina={duyuruBasina} mobilFiltre={true} />
@@ -128,7 +128,7 @@ export default function Anasayfa() {
                 {/* Güncel Akış Kolonu */}
                 <div className={`${aktifTab !== 'guncel' ? 'hidden lg:flex' : 'flex'} flex-col`}>
                     <div className="hidden lg:block mb-8 text-left">
-                        <h2 className="text-2xl text-slate-800"><span className="font-bold text-cyan-700">Güncel</span> Akış</h2>
+                        <h2 className="text-2xl text-slate-800"><span className="font-bold text-cyan-700">Güncel</span> Duyurular</h2>
                         <div className="mt-2 h-1 w-16 bg-cyan-700 rounded-full"></div>
                     </div>
                     <div className="flex-1 rounded-[2rem] border border-slate-100 overflow-hidden bg-white shadow-sm min-h-[400px]">
@@ -137,7 +137,7 @@ export default function Anasayfa() {
                                 <LazyDuyuru key={b.id} b={b} borderClass="bg-cyan-700" btnHoverClass="hover:bg-cyan-700 hover:text-white" />
                             ))
                         ) : (
-                            <div className="p-10 text-center text-slate-300 italic text-sm">Arşivde güncel duyuru bulunamadı.</div>
+                            <div className="p-10 text-center text-slate-300 italic text-sm">Henüz yayınlanmış bir güncel duyuru bulunmuyor.</div>
                         )}
                     </div>
                     <SayfaNavigasyonu toplam={guncel.length} mevcut={guncelSayfa} setSayfa={setGuncelSayfa} aktifRenk="bg-cyan-700" duyuruBasina={duyuruBasina} mobilFiltre={true} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'; // Sürükle-bırak sihirbazları
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import OnayModali from '../Components/OnayModali';
 
 export default function AdminMenuYonetimi() {
@@ -43,7 +43,7 @@ export default function AdminMenuYonetimi() {
                 link: yeniLink
             });
             if (res.data.success) {
-                toast.success("Yeni site menüye başarıyla eklendi.");
+                toast.success("Yeni bağlantı menüye başarıyla eklendi.");
                 setYeniBaslik('');
                 setYeniLink('');
                 siteleriGetir();
@@ -85,13 +85,12 @@ export default function AdminMenuYonetimi() {
 
             setDuzenlemeId(null);
             siteleriGetir();
-            toast.success("Site bilgileri başarıyla güncellendi.");
+            toast.success("Site bağlantısı başarıyla güncellendi.");
         } catch (error) {
             toast.error("Güncelleme hatası.");
         }
     };
 
-    // SÜRÜKLE BIRAK BİTTİĞİNDE TETİKLENEN SİHİRLİ FONKSİYON
     const onDragEnd = async (result) => {
         const { destination, source } = result;
 
@@ -178,7 +177,7 @@ export default function AdminMenuYonetimi() {
                         <table className="w-full text-sm text-left border-collapse table-fixed min-w-[850px]">
                             <thead className="bg-slate-50/50">
                                 <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                    <th className="w-[8%] px-8 py-6 text-center">Tutaç</th>
+                                    <th className="w-[8%] px-8 py-6 text-center">Sırala</th>
                                     <th className="w-[12%] px-4 py-6">Sıra / No</th>
                                     <th className="w-[28%] px-6 py-6">Site Başlığı</th>
                                     <th className="w-[37%] px-6 py-6">Hedef Bağlantı (Link)</th>

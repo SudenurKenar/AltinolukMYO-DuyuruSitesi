@@ -140,8 +140,8 @@ export default function Arsiv() {
                 acikMi={modalAcik}
                 kapat={() => setModalAcik(false)}
                 onayla={handleGercekSilme}
-                baslik="Kaydı Siliyorsunuz"
-                mesaj="Bu bildiriyi sistemden ebediyen silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+                baslik="Bildiri Silme Onayı"
+                mesaj="Bu bildiriyi sistemden kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
             />
 
             <div className="mb-10 text-left">
@@ -149,7 +149,7 @@ export default function Arsiv() {
                     BİLDİRİ YÖNETİM <span className="text-cyan-600 not-italic font-light">PANELİ</span>
                 </h2>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2 border-l-2 border-cyan-500 pl-3">
-                    ESKİ BİLDİRİ ARŞİVİ VE YÖNETİMİ
+                    AKTİF BİLDİRİ LİSTESİ VE ARŞİV YÖNETİMİ
                 </p>
             </div>
 

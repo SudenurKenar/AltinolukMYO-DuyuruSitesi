@@ -112,7 +112,7 @@ export default function AdminProfil() {
                 {/* 1. KULLANICI ADI FORMU */}
                 <form onSubmit={(e) => { e.preventDefault(); apiGonder('admin-ad-guncelle', kullaniciData); }} className="bg-white p-8 rounded-[2.5rem] border border-cyan-100 shadow-sm space-y-6">
                     <h2 className="font-black text-cyan-800 text-base uppercase tracking-tighter border-b pb-3 border-cyan-50 flex items-center gap-2">
-                        <User size={18} /> isim Değişimi
+                        <User size={18} /> Kullanıcı Adı Güncelleme
                     </h2>
                     <div className="space-y-4">
                         <div className="space-y-2">
@@ -123,9 +123,9 @@ export default function AdminProfil() {
                             <label className="text-[11px] font-black uppercase text-slate-400 ml-2 text-cyan-600">Yeni Kullanıcı Adı</label>
                             <input type="text" value={kullaniciData.yeniAd} onChange={(e) => setKullaniciData({ ...kullaniciData, yeniAd: e.target.value })} className="w-full bg-white border-2 border-cyan-100 rounded-2xl py-4 px-6 outline-none focus:border-cyan-500 font-bold text-slate-800 shadow-inner transition-all" placeholder="Yeni adınız" required />
                         </div>
-                        <PasswordInput label="Onay Şifreniz" icon={KeyRound} value={kullaniciData.dogrulamaSifresi} onChange={(e) => setKullaniciData({ ...kullaniciData, dogrulamaSifresi: e.target.value })} show={showSifreler.dogrulama} setShow={(val) => setShowSifreler({ ...showSifreler, dogrulama: val })} placeholder="Onay için şifreniz" />
+                        <PasswordInput label="Mevcut Şifreniz (Onay)" icon={KeyRound} value={kullaniciData.dogrulamaSifresi} onChange={(e) => setKullaniciData({ ...kullaniciData, dogrulamaSifresi: e.target.value })} show={showSifreler.dogrulama} setShow={(val) => setShowSifreler({ ...showSifreler, dogrulama: val })} placeholder="Onay için şifreniz" />
                     </div>
-                    <button type="submit" disabled={loading} className="w-full bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-cyan-600 transition-all text-xs tracking-[0.2em] shadow-lg disabled:opacity-50">KİMLİĞİ GÜNCELLE</button>
+                    <button type="submit" disabled={loading} className="w-full bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-cyan-600 transition-all text-xs tracking-[0.2em] shadow-lg disabled:opacity-50">KULLANICI ADINI GÜNCELLE</button>
                 </form>
 
                 {/* 2. ŞİFRE FORMU */}
@@ -136,7 +136,7 @@ export default function AdminProfil() {
                     apiGonder('admin-sifre-guncelle', sifreData);
                 }} className="bg-white p-8 rounded-[2.5rem] border border-cyan-100 shadow-sm space-y-6">
                     <h2 className="font-black text-cyan-800 text-base uppercase tracking-tighter border-b pb-3 border-cyan-50 flex items-center gap-2">
-                        <Lock size={18} /> Anahtar Değişimi
+                        <Lock size={18} /> Şifre Değişimi
                     </h2>
                     <div className="space-y-4">
                         <PasswordInput label="Eski Şifre" icon={KeyRound} value={sifreData.eskiSifre} onChange={(e) => setSifreData({ ...sifreData, eskiSifre: e.target.value })} show={showSifreler.eski} setShow={(val) => setShowSifreler({ ...showSifreler, eski: val })} />
@@ -144,7 +144,7 @@ export default function AdminProfil() {
                         <PasswordInput label="Yeni Şifre" icon={Lock} value={sifreData.yeniSifre} onChange={(e) => setSifreData({ ...sifreData, yeniSifre: e.target.value })} show={showSifreler.yeni} setShow={(val) => setShowSifreler({ ...showSifreler, yeni: val })} preventCopy={true} />
                         <PasswordInput label="Yeni Şifre (Tekrar)" icon={Lock} value={sifreData.yeniSifreTekrar} onChange={(e) => setSifreData({ ...sifreData, yeniSifreTekrar: e.target.value })} show={showSifreler.tekrar} setShow={(val) => setShowSifreler({ ...showSifreler, tekrar: val })} preventPaste={true} />
                     </div>
-                    <button type="submit" disabled={loading} className="w-full bg-cyan-600 text-white font-black py-4 rounded-2xl hover:bg-cyan-700 transition-all text-xs tracking-[0.2em] shadow-lg disabled:opacity-50">ANAHTARI GÜNCELLE</button>
+                    <button type="submit" disabled={loading} className="w-full bg-cyan-600 text-white font-black py-4 rounded-2xl hover:bg-cyan-700 transition-all text-xs tracking-[0.2em] shadow-lg disabled:opacity-50">ŞİFREYİ GÜNCELLE</button>
                 </form>
             </div>
         </div>

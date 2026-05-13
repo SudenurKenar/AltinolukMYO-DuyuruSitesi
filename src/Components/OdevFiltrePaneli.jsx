@@ -31,7 +31,6 @@ export default function OdevFiltrePaneli({ odevler, filtreler, setFiltreler }) {
         setFiltreliKonular(süzülenKonular);
     }, [filtreler.ders, filtreler.donem, odevler]);
 
-    // Ders veya Dönem değiştiğinde seçili kalan konuyu otomatik sıfırlıyoruz
     const handleDersVeyaDonemChange = (alan, deger) => {
         setFiltreler(prev => ({
             ...prev,
@@ -79,7 +78,7 @@ export default function OdevFiltrePaneli({ odevler, filtreler, setFiltreler }) {
                     className="w-full p-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all cursor-pointer disabled:bg-slate-100 disabled:cursor-not-allowed bg-white"
                 >
                     {!filtreler.ders || !filtreler.donem ? (
-                        <option value="">Önce Ders ve Dönem...</option>
+                        <option value="">Lütfen Ders ve Dönem Seçiniz</option>
                     ) : (
                         <>
                             <option value="">Tümü (Seçilen Bağlam)</option>
@@ -91,7 +90,7 @@ export default function OdevFiltrePaneli({ odevler, filtreler, setFiltreler }) {
 
             {/* 4. DOSYA TÜRÜ */}
             <div className="space-y-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Dosya</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Dosya Türü</label>
                 <select value={filtreler.dosyaTuru} onChange={(e) => setFiltreler({ ...filtreler, dosyaTuru: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all cursor-pointer bg-white">
                     <option value="hepsi">Hepsi</option>
                     <option value="pdf">PDF</option>
@@ -102,13 +101,13 @@ export default function OdevFiltrePaneli({ odevler, filtreler, setFiltreler }) {
 
             {/* 5. BAŞLANGIÇ TARİHİ */}
             <div className="space-y-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Başlangıç</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Başlangıç Tarihi</label>
                 <input type="date" value={filtreler.baslangicTarihi} onChange={(e) => setFiltreler({ ...filtreler, baslangicTarihi: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all" />
             </div>
 
             {/* 6. BİTİŞ TARİHİ */}
             <div className="space-y-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Bitiş</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Bitiş Tarihi</label>
                 <input type="date" value={filtreler.bitisTarihi} onChange={(e) => setFiltreler({ ...filtreler, bitisTarihi: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all" />
             </div>
 

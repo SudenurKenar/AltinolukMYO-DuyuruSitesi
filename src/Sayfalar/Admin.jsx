@@ -34,7 +34,7 @@ export default function Admin() {
             setMesajTuruId(m.mesajturu_id);
             setDuzenlemeModu(true);
             setDuzenlenecekId(m.id);
-            toast("Kayıt resmi düzenleme için hazırlandı.", { icon: '📝' });
+            toast("Bildiri kaydı düzenleme için hazırlandı.", { icon: '📝' });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }, [location]);
@@ -67,7 +67,7 @@ export default function Admin() {
             });
             const data = await response.json();
             if (data.success) {
-                toast.success(duzenlemeModu ? "Kayıt başarıyla güncellendi!" : "Bildiri başarıyla yayınlandı!", { id: toastId });
+                toast.success(duzenlemeModu ? "Bildiri başarıyla güncellendi!" : "Bildiri başarıyla yayınlandı!", { id: toastId });
                 setBaslik(""); setAciklama(""); setMesajTuruId("");
                 setDuzenlemeModu(false); setDuzenlenecekId(null);
                 if (duzenlemeModu) navigate('/admin/arsiv');
@@ -118,14 +118,12 @@ export default function Admin() {
                     line-height: 1.7 !important;
                     color: #334155 !important;
                     
-                    /* CİLA: Duyuru detay sayfasıyla tam uyumlu esnek kırılma mantığı */
                     word-break: break-word !important;
                     overflow-wrap: break-word !important;
                     hyphens: none !important;
                     -webkit-hyphens: none !important;
                     -ms-hyphens: none !important;
                 }
-                /* CİLA: Editör içindeki tüm etiketlerin kırılma yapısını detay sayfasıyla eşitliyoruz */
                 .admin-editor .ql-editor p,
                 .admin-editor .ql-editor h1,
                 .admin-editor .ql-editor h2,

@@ -8,7 +8,6 @@ export default function AdminLayout() {
     const navigate = useNavigate();
     const [isChecking, setIsChecking] = useState(true);
 
-    // Masaüstünde varsayılan olarak açık (true) başlasın.
     const [panelAcik, setPanelAcik] = useState(true);
 
     useEffect(() => {
@@ -35,10 +34,8 @@ export default function AdminLayout() {
                 }}
             />
 
-            {/* Yan Menü - Durumu ve değiştirme yetkisini menüye iletiyoruz */}
             <APanel panelAcik={panelAcik} setPanelAcik={setPanelAcik} />
 
-            {/* Ana İçerik Alanı - Panel daraldığında flex-1 sayesinde otomatik olarak ekranı kaplayıp ortalar */}
             <div className="flex flex-col flex-1 overflow-y-auto custom-scrollbar w-full transition-all duration-500 ease-in-out">
                 <main className="flex-1 p-4 sm:p-6 md:p-10">
                     <Outlet />

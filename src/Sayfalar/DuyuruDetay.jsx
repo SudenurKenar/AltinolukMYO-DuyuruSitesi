@@ -15,9 +15,9 @@ export default function DuyuruDetay() {
             .then(data => {
                 const bulundu = data.find(m => String(m.id) === String(id));
                 if (bulundu) setDetay(bulundu);
-                else toast.error("İçerik arşivde bulunamadı.");
+                else toast.error("Duyuru arşivde bulunamadı.");
             })
-            .catch(() => toast.error("Sistem bağlantısı koptu."));
+            .catch(() => toast.error("Duyuru detayları yüklenirken bir sunucu hatası oluştu."));
 
         window.scrollTo(0, 0);
     }, [id]);

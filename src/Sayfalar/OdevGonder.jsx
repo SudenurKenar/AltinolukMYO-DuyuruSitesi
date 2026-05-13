@@ -40,7 +40,7 @@ export default function OdevGonder() {
                 setDonemListesi(donemRes.data.filter(d => d.durum === 'aktif'));
                 setTumKonular(konuRes.data.filter(k => k.durum === 'aktif'));
             } catch (error) {
-                toast.error("Form seçenekleri yüklenirken bir aksilik çıktı!");
+                toast.error("Form seçenekleri yüklenirken bir sunucu hatası oluştu.");
             }
         };
         verileriGetir();
@@ -137,7 +137,6 @@ export default function OdevGonder() {
 
         if (dosya) formData.append('odev_dosyasi', dosya);
 
-        // 🔥 MÜHÜR: Tanımsız değişken hataları form.donem_id ve form.konu_id ile düzeltildi!
         const secilenDonemNesnesi = donemListesi.find(d => String(d.id) === String(form.donem_id));
         const secilenKonuNesnesi = tumKonular.find(k => String(k.id) === String(form.konu_id));
 
@@ -274,7 +273,7 @@ export default function OdevGonder() {
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Öğrenci Notu / Açıklama</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Öğrenci Açıklaması / Teslim Notu</label>
                         <textarea value={form.aciklama} rows="3" className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none resize-none text-sm transition-all focus:ring-2 focus:ring-cyan-500/10" placeholder="Dosya eklemeyecekseniz buraya açıklama yazmanız mecburidir..." onChange={(e) => setForm({ ...form, aciklama: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor} />
                     </div>
 
