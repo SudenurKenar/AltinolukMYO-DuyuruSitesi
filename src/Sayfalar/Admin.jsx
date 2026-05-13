@@ -42,10 +42,8 @@ export default function Admin() {
     const handleMesajIslemi = async (e) => {
         e.preventDefault();
 
-
         if (!baslik.trim()) return toast.error("Lütfen bildiri başlığını yazınız.");
         if (!mesajTuruId) return toast.error("Lütfen bildiri statüsünü seçiniz.");
-
 
         const editörMetni = aciklama.replace(/<[^>]*>/g, '').trim();
         if (!editörMetni) return toast.error("Lütfen bildiri içeriğini (mesajı) yazınız.");
@@ -87,12 +85,62 @@ export default function Admin() {
             ['bold', 'italic', 'underline', 'strike'],
             [{ 'list': 'ordered' }, { 'list': 'bullet' }],
             [{ 'color': [] }, { 'background': [] }],
+            [{ 'align': [] }],
             ['link'], ['clean']
         ],
     };
 
     return (
         <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl shadow-cyan-100/50 p-6 md:p-8 border border-cyan-50 font-sans px-4 md:px-8">
+
+            <style>{`
+                .admin-editor .ql-toolbar {
+                    background: #f8fafc;
+                    border-top-left-radius: 1rem;
+                    border-top-right-radius: 1rem;
+                    border-color: #e2e8f0 !important;
+                }
+                .admin-editor .ql-container {
+                    border-bottom-left-radius: 1rem;
+                    border-bottom-right-radius: 1rem;
+                    border-color: transparent !important;
+                    background: white;
+                    font-family: Georgia, 'Times New Roman', serif !important;
+                    font-size: 14.5px !important;
+                    line-height: 1.7 !important;
+                    color: #334155 !important;
+                }
+                .admin-editor .ql-editor {
+                    min-height: 400px;
+                    padding: 32px 48px !important;
+                    font-family: Georgia, 'Times New Roman', serif !important;
+                    font-size: 14.5px !important;
+                    line-height: 1.7 !important;
+                    color: #334155 !important;
+                    
+                    /* CİLA: Duyuru detay sayfasıyla tam uyumlu esnek kırılma mantığı */
+                    word-break: break-word !important;
+                    overflow-wrap: break-word !important;
+                    hyphens: none !important;
+                    -webkit-hyphens: none !important;
+                    -ms-hyphens: none !important;
+                }
+                /* CİLA: Editör içindeki tüm etiketlerin kırılma yapısını detay sayfasıyla eşitliyoruz */
+                .admin-editor .ql-editor p,
+                .admin-editor .ql-editor h1,
+                .admin-editor .ql-editor h2,
+                .admin-editor .ql-editor h3,
+                .admin-editor .ql-editor li,
+                .admin-editor .ql-editor span,
+                .admin-editor .ql-editor strong,
+                .admin-editor .ql-editor em {
+                    word-break: break-word !important;
+                    overflow-wrap: break-word !important;
+                    hyphens: none !important;
+                    -webkit-hyphens: none !important;
+                }
+            `}</style>
+
             <form onSubmit={handleMesajIslemi} className="space-y-6 text-left">
                 <div className="mb-10">
                     <h2 className="text-3xl font-black text-[#1e3a5a] italic tracking-tighter">
@@ -143,34 +191,10 @@ export default function Admin() {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Bildiri İçeriği (Bildirinin detay sayfasında nasıl gözüküceğini görmek için sol paneli kapatınız)</label>
-                    <div className="bg-white rounded-2xl border border-slate-200 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all overflow-hidden">
-                        <style>
-                            {`
-                                .ql-editor {
-                                    min-height: 400px;
-                                    font-family: 'serif';
-                                    font-size: 14.5px;
-                                    line-height: 1.7;
-                                    padding: 40px 60px !important;
-                                    text-align: left;
-                                    hyphens: none !important;
-                                    -webkit-hyphens: none !important;
-                                    overflow-wrap: break-word;
-                                }
-                                .ql-container {
-                                    border-bottom-left-radius: 1rem;
-                                    border-bottom-right-radius: 1rem;
-                                    background: white;
-                                }
-                                .ql-toolbar {
-                                    background: #f8fafc;
-                                    border-top-left-radius: 1rem;
-                                    border-top-right-radius: 1rem;
-                                    border-color: #e2e8f0 !important;
-                                }
-                            `}
-                        </style>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">
+                        Bildiri İçeriği
+                    </label>
+                    <div className="bg-white rounded-2xl border border-slate-200 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all overflow-hidden admin-editor">
                         <ReactQuill
                             theme="snow"
                             value={aciklama}

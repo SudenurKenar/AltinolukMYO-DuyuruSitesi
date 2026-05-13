@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* Açılan option menülerinin arkasının kesinlikle opak beyaz olmasını sağlar */
+select option {
+    background-color: #ffffff !important;
+    color: #232222 !important;
+    /* Yazı rengini de koyu lacivert yapar ki net okunsun */
+}

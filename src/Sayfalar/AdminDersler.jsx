@@ -29,17 +29,24 @@ export default function AdminDersler() {
 
     const dersEkle = async (e) => {
         e.preventDefault();
-        if (!yeniDers.trim()) return toast.error("Ders tanımı boş bırakılamaz.");
+        // CİLA: Boşlukları temizleyip kontrol ediyoruz
+        const temizDers = yeniDers.trim();
+        if (!temizDers) return toast.error("Ders tanımı boş bırakılamaz.");
+
         setYukleniyor(true);
         try {
-            const res = await axios.post('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkders-ekle', { ders: yeniDers });
+            // CİLA: Sunucuya tertemiz ve boşluksuz string fırlatıyoruz
+            const res = await axios.post('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkders-ekle', { ders: temizDers });
             if (res.data.success) {
                 toast.success("Ders başarıyla kaydedildi.");
                 setYeniDers('');
                 dersleriGetir();
             }
-        } catch (error) { toast.error("Kayıt hatası."); }
-        finally { setYukleniyor(false); }
+        } catch (error) {
+            toast.error("Kayıt hatası.");
+        } finally {
+            setYukleniyor(false);
+        }
     };
 
     const durumDegistir = async (id, mevcutDurum) => {
@@ -70,8 +77,9 @@ export default function AdminDersler() {
     };
 
     const dersGuncelle = async (id) => {
+        if (!duzenlemeMetni.trim()) return toast.error("Ders adı boş bırakılamaz.");
         try {
-            await axios.put(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdersler/${id}`, { ders: duzenlemeMetni });
+            await axios.put(`https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdersler/${id}`, { ders: duzenlemeMetni.trim() });
             setDuzenlemeId(null);
             dersleriGetir();
             toast.success("Ders bilgisi güncellendi.");
@@ -136,7 +144,6 @@ export default function AdminDersler() {
                                             />
                                         ) : (
                                             <div className="max-w-[300px] overflow-x-auto custom-scrollbar-mini pb-1">
-                                                {/* Düzenleme Yapıldı: "uppercase" sınıfı kaldırıldı, girdinin orijinal hali korundu */}
                                                 <span className={`font-bold tracking-tight whitespace-nowrap ${!d.durum ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
                                                     {d.ders}
                                                 </span>

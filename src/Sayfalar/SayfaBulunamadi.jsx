@@ -25,7 +25,6 @@ export default function SayfaBulunamadi() {
     return (
         <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-slate-50 relative font-serif p-4 overflow-hidden">
 
-            {/* Garantili CSS Mührü */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes turkuazPulse {

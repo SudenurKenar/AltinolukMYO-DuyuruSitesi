@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import AnaLayout from '../Layouts/AnaLayout';
 import { Helmet } from 'react-helmet-async';
+import 'react-quill-new/dist/quill.snow.css';
 
 export default function DuyuruDetay() {
     const { id } = useParams();
@@ -29,6 +30,16 @@ export default function DuyuruDetay() {
         </AnaLayout>
     );
 
+    const kelimeleriZırhlaSar = (htmlIcerik) => {
+        if (!htmlIcerik) return "";
+
+        return htmlIcerik.replace(/(?<!<[^>]*)\b([a-zA-ZğüşıöçĞÜŞİÖÇ0-9]+)\b/g, (match) => {
+            if (match === 'nbsp' || match === 'lt' || match === 'gt' || match === 'amp') return match;
+
+            return `<span style="display: inline-block; white-space: nowrap;">${match}</span>`;
+        });
+    };
+
     const tarihObje = new Date(detay.atistarihi);
     const tarih = tarihObje.toLocaleDateString('tr-TR');
     const saat = tarihObje.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
@@ -42,7 +53,7 @@ export default function DuyuruDetay() {
             <div className="w-full max-w-[1200px] mx-auto min-h-[calc(100vh-250px)] px-2 sm:px-6 lg:px-8 py-4 sm:py-10 font-serif text-left">
                 <div className="w-full bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col">
 
-                    <header className="px-5 sm:px-10 lg:px-12 py-6 lg:py-10 bg-slate-50/10 border-b border-slate-100/60">
+                    <header className="px-5 sm:px-10 lg:px-12 py-6 lg:py-10 bg-slate-50/10 border-b border-slate-200">
                         <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#1e3a5a] leading-tight tracking-tight mb-6">
                             {detay.baslik}
                         </h1>
@@ -57,21 +68,40 @@ export default function DuyuruDetay() {
                         </div>
                     </header>
 
-
                     <main className="px-5 sm:px-10 lg:px-12 py-8 lg:py-12 bg-white">
-                        <article className="w-full max-w-none">
-                            <div
-                                className="text-slate-800 text-[15px] sm:text-[17px] leading-[1.7] font-serif
-                                           [word-wrap:break-word] [overflow-wrap:anywhere]
-                                           prose prose-slate max-w-none
-                                           [&_p]:!mb-3 [&_p]:min-h-[1em] [&_p]:whitespace-pre-wrap
-                                           [&_ul]:!list-disc [&_ul]:!pl-8 [&_ul]:!mb-4 [&_ul]:!space-y-1
-                                           [&_li]:!mb-1 [&_li]:!leading-relaxed
-                                           [&_strong]:font-black [&_strong]:text-slate-900
-                                           [&_a]:text-cyan-600 [&_a]:underline [&_a]:break-all
-                                           [&_h2]:!mt-6 [&_h2]:!mb-2 [&_h2]:text-lg [&_h2]:font-bold"
-                                dangerouslySetInnerHTML={{ __html: detay.aciklama }}
-                            />
+                        <style>
+                            {`
+                                .ql-container.ql-snow {
+                                    border: none !important;
+                                }
+                                .detay-quill-alanı .ql-editor {
+                                    padding: 0 !important;
+                                    font-family: Georgia, 'Times New Roman', serif !important;
+                                    font-size: 15.5px !important;
+                                    line-height: 1.7 !important;
+                                    color: #334155 !important;
+                                    /* CSS kırılmalarını normal nizamda tutuyoruz, gerisini JS kalkanı hallediyor */
+                                    word-break: normal !important;
+                                    overflow-wrap: break-word !important;
+                                }
+                                .detay-quill-alanı .ql-editor p {
+                                    margin-bottom: 0.75rem !important;
+                                    min-height: 1em !important;
+                                    white-space: pre-wrap !important;
+                                }
+                                .detay-quill-alanı .ql-editor * {
+                                    font-size: 15.5px !important;
+                                }
+                            `}
+                        </style>
+
+                        <article className="w-full max-w-none detay-quill-alanı">
+                            <div className="ql-snow">
+                                <div
+                                    className="ql-editor"
+                                    dangerouslySetInnerHTML={{ __html: kelimeleriZırhlaSar(detay.aciklama) }}
+                                />
+                            </div>
                         </article>
 
                         <div className="mt-4 select-text">

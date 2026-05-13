@@ -111,14 +111,23 @@ app.patch('/api/sktkdersler/:id/durum', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// 2. ÖDEV VE ARŞİV SİSTEMİ
+//ÖDEV VE ARŞİV SİSTEMİ 
+
+// ÖDEVLERİ LİSTELEME 
 app.get('/api/sktkodevler', async (req, res) => {
     try {
         const query = `
             SELECT 
-                o.*, 
-                d.donem_adi as donem, 
-                k.konu_adi as konu
+                o.id,
+                o.isim,
+                o.soyisim,
+                o.no,
+                o.ders,
+                o.aciklama,
+                o.dosyolu,
+                o.yuktarihi,
+                COALESCE(d.donem_adi, o.donem_adi) as donem, 
+                COALESCE(k.konu_adi, o.konu_adi) as konu
             FROM sktkodev o
             LEFT JOIN sktkdonem d ON o.donem_id = d.id
             LEFT JOIN sktkkonu k ON o.konu_id = k.id
@@ -132,14 +141,15 @@ app.get('/api/sktkodevler', async (req, res) => {
     }
 });
 
+//YENİ ÖDEV EKLEME 
 app.post('/api/sktkodevler', upload.single('odev_dosyasi'), async (req, res) => {
-    const { no, isim, soyisim, ders, donem_id, konu_id, aciklama } = req.body;
+    const { no, isim, soyisim, ders, donem_id, konu_id, aciklama, donem_adi, konu_adi } = req.body;
     const dosyolu = req.file ? req.file.filename : null;
 
     try {
         const query = `
-            INSERT INTO sktkodev (isim, soyisim, no, ders, donem_id, konu_id, aciklama, dosyolu, yuktarihi) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP) 
+            INSERT INTO sktkodev (isim, soyisim, no, ders, donem_id, konu_id, aciklama, dosyolu, yuktarihi, donem_adi, konu_adi) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, $9, $10) 
             RETURNING *`;
 
         const result = await db.query(query, [
@@ -150,7 +160,9 @@ app.post('/api/sktkodevler', upload.single('odev_dosyasi'), async (req, res) => 
             donem_id,
             konu_id,
             aciklama || '',
-            dosyolu
+            dosyolu,
+            donem_adi ? donem_adi.trim() : 'Bilinmeyen Dönem',
+            konu_adi ? konu_adi.trim() : 'Genel Konu'
         ]);
 
         res.status(201).json({ success: true, data: result.rows[0] });
@@ -343,59 +355,118 @@ app.delete('/api/sktkdonem-sil/:id', async (req, res) => {
     }
 });
 
-/// KONU
+// ==================== SABIKLI KONU SİSTEMİ (CİLALANMIŞ NİHAİ SÜRÜM) ====================
+
 app.get('/api/sktkkonular', async (req, res) => {
     try {
-        const result = await db.query("SELECT * FROM sktkkonu ORDER BY id DESC");
-        res.json(result.rows);
+        const query = `
+            SELECT 
+                k.id, 
+                k.konu_adi, 
+                k.ders_id, 
+                k.donem_id, 
+                k.durum,
+                COALESCE(dl.ders, 'Ders Atanmamış') as ders_adi,
+                COALESCE(dn.donem_adi, 'Bilinmeyen Dönem') as donem_adi
+            FROM sktkkonu k
+            LEFT JOIN sktkdersler dl ON k.ders_id = dl.id
+            LEFT JOIN sktkdonem dn ON k.donem_id = dn.id
+            ORDER BY k.id DESC`;
+
+        const result = await db.query(query);
+        res.status(200).json(result.rows);
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error("Konu Listeleme Hatası:", err.message);
+        res.status(500).json({ success: false, error: "Müfredat listesi getirilirken sunucu hatası oluştu." });
     }
 });
 
+// 2. İLİŞKİLİ YENİ KONU EKLE (POST)
 app.post('/api/sktkkonular-ekle', async (req, res) => {
     try {
-        const { konu_adi } = req.body;
-        const result = await db.query(
-            "INSERT INTO sktkkonu (konu_adi) VALUES($1) RETURNING *",
-            [konu_adi]
-        );
-        res.json({ success: true, data: result.rows[0] });
+        const { konu_adi, ders_id, donem_id } = req.body;
+
+        if (!konu_adi || !ders_id || !donem_id) {
+            return res.status(400).json({ success: false, message: "Eksik parametre! Tüm alanların seçilmesi zorunludur." });
+        }
+
+        const query = `
+            INSERT INTO sktkkonu (konu_adi, ders_id, donem_id, durum) 
+            VALUES ($1, $2, $3, 'aktif') 
+            RETURNING *`;
+
+        const result = await db.query(query, [konu_adi.trim(), ders_id, donem_id]);
+        res.status(201).json({ success: true, data: result.rows[0] });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error("Konu Ekleme Hatası:", err.message);
+        res.status(500).json({ success: false, error: "Yeni konu işlenirken bir hata meydana geldi." });
     }
 });
 
+// 3. KONU BAŞLIĞINI GÜNCELLE (PUT)
 app.put('/api/sktkkonular-guncelle/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { konu_adi } = req.body;
-        await db.query("UPDATE sktkkonu SET konu_adi = $1 WHERE id = $2", [konu_adi, id]);
-        res.json({ success: true, message: "Konu güncellendi." });
+        const { konu_adi, ders_id, donem_id } = req.body;
+
+        if (!konu_adi || konu_adi.trim() === "" || !ders_id || !donem_id) {
+            return res.status(400).json({ success: false, message: "Konu adı, ders ve dönem alanları boş bırakılamaz." });
+        }
+
+        // CİLA: Üç alanı birden güncelleyen SQL sorgusu
+        const query = `
+            UPDATE sktkkonu 
+            SET konu_adi = $1, ders_id = $2, donem_id = $3 
+            WHERE id = $4 
+            RETURNING *`;
+
+        const result = await db.query(query, [konu_adi.trim(), ders_id, donem_id, id]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, message: "Konu tüm bağlamlarıyla güncellendi.", data: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Güncellenmek istenen konu bulunamadı." });
+        }
     } catch (err) {
+        console.error("Konu Güncelleme Hatası:", err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
+// 4. KONU YAYIN DURUMUNU DEĞİŞTİR (PATCH)
 app.patch('/api/sktkkonular-durum/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { durum } = req.body;
-        await db.query("UPDATE sktkkonu SET durum = $1 WHERE id = $2", [durum, id]);
-        res.json({ success: true, message: "Konu durumu güncellendi." });
+
+        const query = 'UPDATE sktkkonu SET durum = $1 WHERE id = $2 RETURNING *';
+        const result = await db.query(query, [durum, id]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, message: "Konu durumu güncellendi.", data: result.rows[0] });
+        } else {
+            res.status(404).json({ success: false, message: "Konu bulunamadı." });
+        }
     } catch (err) {
+        console.error("Konu Durum Hatası:", err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// --- 5. KONU SİL ---
+// 5. KONUYU RESMİ KAYITLARDAN SİL (DELETE)
 app.delete('/api/sktkkonular-sil/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        await db.query("DELETE FROM sktkkonu WHERE id = $1", [id]);
-        res.json({ success: true, message: "Konu silindi." });
+        const result = await db.query("DELETE FROM sktkkonu WHERE id = $1 RETURNING *", [id]);
+
+        if (result.rows.length > 0) {
+            res.status(200).json({ success: true, message: "Konu resmi kayıtlardan tamamen silindi." });
+        } else {
+            res.status(404).json({ success: false, message: "Silinmek istenen konu zaten mevcut değil." });
+        }
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error("Konu Silme Hatası:", err.message);
+        res.status(500).json({ success: false, error: "Silme işlemi sırasında veritabanı reddi gerçekleşti." });
     }
 });
 

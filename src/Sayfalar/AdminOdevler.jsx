@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { Filter, X, Calendar, FileText, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import OdevFiltrePaneli from '../Components/OdevFiltrePaneli';
 
 // LAZY LOAD BİLEŞENİ
 const LazyOdevSatiri = ({ odev, tarihFormatla, handleIncele }) => {
@@ -91,12 +92,12 @@ export default function AdminOdevler() {
     const [yukleniyor, setYukleniyor] = useState(true);
     const [seciliPdf, setSeciliPdf] = useState(null);
 
-    // Filtre State'leri
+    // Filtre Ana State'i
     const [filtreler, setFiltreler] = useState({
         donem: '',
         konu: '',
         ders: '',
-        dosyaTuru: 'hepsi', // hepsi, pdf, zip, rar, yok
+        dosyaTuru: 'hepsi',
         baslangicTarihi: '',
         bitisTarihi: ''
     });
@@ -116,13 +117,12 @@ export default function AdminOdevler() {
             });
     }, []);
 
-    // Filtreleme Mantığı
     useEffect(() => {
         let sonuc = [...odevler];
 
-        if (filtreler.donem) sonuc = sonuc.filter(o => o.donem === filtreler.donem);
-        if (filtreler.konu) sonuc = sonuc.filter(o => o.konu === filtreler.konu);
-        if (filtreler.ders) sonuc = sonuc.filter(o => o.ders === filtreler.ders);
+        if (filtreler.donem) sonuc = sonuc.filter(o => (o.donem || "Bilinmeyen Dönem") === filtreler.donem);
+        if (filtreler.konu) sonuc = sonuc.filter(o => (o.konu || "Genel Konu") === filtreler.konu);
+        if (filtreler.ders) sonuc = sonuc.filter(o => (o.ders || "Silinmiş Ders") === filtreler.ders);
 
         if (filtreler.dosyaTuru !== 'hepsi') {
             if (filtreler.dosyaTuru === 'yok') {
@@ -133,11 +133,13 @@ export default function AdminOdevler() {
         }
 
         if (filtreler.baslangicTarihi) {
-            sonuc = sonuc.filter(o => new Date(o.yuktarihi) >= new Date(filtreler.baslangicTarihi));
+            const baslangic = new Date(filtreler.baslangicTarihi);
+            baslangic.setHours(0, 0, 0, 0);
+            sonuc = sonuc.filter(o => new Date(o.yuktarihi) >= baslangic);
         }
         if (filtreler.bitisTarihi) {
             const bitis = new Date(filtreler.bitisTarihi);
-            bitis.setHours(23, 59, 59); // Günün sonuna kadar al
+            bitis.setHours(23, 59, 59, 999);
             sonuc = sonuc.filter(o => new Date(o.yuktarihi) <= bitis);
         }
 
@@ -194,53 +196,13 @@ export default function AdminOdevler() {
                     </button>
                 </div>
 
-                {/* FİLTRELEME ALANI */}
-                <div className="bg-white p-6 rounded-[1.5rem] border border-slate-100 shadow-sm mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    {/* Dönem */}
-                    <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Dönem</label>
-                        <select value={filtreler.donem} onChange={(e) => setFiltreler({ ...filtreler, donem: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all cursor-pointer">
-                            <option value="">Tümü</option>
-                            {[...new Set(odevler.map(o => o.donem))].filter(Boolean).map(d => <option key={d} value={d}>{d}</option>)}
-                        </select>
-                    </div>
-                    {/* Konu */}
-                    <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Konu</label>
-                        <select value={filtreler.konu} onChange={(e) => setFiltreler({ ...filtreler, konu: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all cursor-pointer">
-                            <option value="">Tümü</option>
-                            {[...new Set(odevler.map(o => o.konu))].filter(Boolean).map(k => <option key={k} value={k}>{k}</option>)}
-                        </select>
-                    </div>
-                    {/* Ders */}
-                    <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Ders</label>
-                        <select value={filtreler.ders} onChange={(e) => setFiltreler({ ...filtreler, ders: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all cursor-pointer">
-                            <option value="">Tümü</option>
-                            {[...new Set(odevler.map(o => o.ders))].filter(Boolean).map(d => <option key={d} value={d}>{d}</option>)}
-                        </select>
-                    </div>
-                    {/* Dosya Türü */}
-                    <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Dosya</label>
-                        <select value={filtreler.dosyaTuru} onChange={(e) => setFiltreler({ ...filtreler, dosyaTuru: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all cursor-pointer">
-                            <option value="hepsi">Hepsi</option>
-                            <option value="pdf">PDF</option>
-                            <option value="zip">RAR/ZIP</option>
-                            <option value="yok">Dosyasız</option>
-                        </select>
-                    </div>
-                    {/* Tarih Aralığı */}
-                    <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Başlangıç</label>
-                        <input type="date" value={filtreler.baslangicTarihi} onChange={(e) => setFiltreler({ ...filtreler, baslangicTarihi: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all" />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Bitiş</label>
-                        <input type="date" value={filtreler.bitisTarihi} onChange={(e) => setFiltreler({ ...filtreler, bitisTarihi: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all" />
-                    </div>
-                </div>
+                <OdevFiltrePaneli
+                    odevler={odevler}
+                    filtreler={filtreler}
+                    setFiltreler={setFiltreler}
+                />
 
+                {/* Tablo Alanı */}
                 <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
                     <div className="overflow-x-auto ozel-scroll transform scale-y-[-1]">
                         <div className="transform scale-y-[-1] pt-3 pb-2">
@@ -268,7 +230,7 @@ export default function AdminOdevler() {
                 </div>
             </div>
 
-            {/* PDF Ön İzleme Modalı */}
+            {/* PDF Ön İzleme Modaları */}
             {seciliPdf && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1e3a5a]/40 backdrop-blur-md p-4 animate-in fade-in duration-500">
                     <div className="bg-white w-full max-w-5xl h-[90vh] rounded-[2rem] md:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative border-8 border-white">

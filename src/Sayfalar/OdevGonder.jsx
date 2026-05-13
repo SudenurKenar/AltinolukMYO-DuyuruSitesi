@@ -19,17 +19,17 @@ export default function OdevGonder() {
     const [yukleniyor, setYukleniyor] = useState(false);
     const [dosyaHazirlaniyor, setDosyaHazirlaniyor] = useState(false);
 
-    // Veritabanından gelecek listeler
+    // Veritabanından gelecek ana listeler
     const [dersListesi, setDersListesi] = useState([]);
     const [donemListesi, setDonemListesi] = useState([]);
-    const [konuListesi, setKonuListesi] = useState([]);
+    const [tumKonular, setTumKonular] = useState([]); // İsmi daha net olması için değiştirildi
+    const [filtreliKonular, setFiltreliKonular] = useState([]); // Hocanın istediği dinamik liste
 
     const [surukleniyor, setSurukleniyor] = useState(false);
 
     useEffect(() => {
         const verileriGetir = async () => {
             try {
-                // Seçenekleri eş zamanlı olarak huzurunuza getiriyoruz
                 const [dersRes, donemRes, konuRes] = await Promise.all([
                     axios.get('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdersler'),
                     axios.get('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkdonemler'),
@@ -38,13 +38,26 @@ export default function OdevGonder() {
 
                 setDersListesi(dersRes.data.filter(d => d.durum === true || d.durum === 1));
                 setDonemListesi(donemRes.data.filter(d => d.durum === 'aktif'));
-                setKonuListesi(konuRes.data.filter(k => k.durum === 'aktif'));
+                setTumKonular(konuRes.data.filter(k => k.durum === 'aktif'));
             } catch (error) {
                 toast.error("Form seçenekleri yüklenirken bir aksilik çıktı!");
             }
         };
         verileriGetir();
     }, []);
+
+    // HOCANIN İSTEĞİ: Ders veya Dönem değiştiğinde Konu listesini süzüyoruz
+    useEffect(() => {
+        if (form.ders && form.donem_id) {
+            const elenenler = tumKonular.filter(konu =>
+                String(konu.ders_adi || konu.ders) === String(form.ders) &&
+                String(konu.donem_id) === String(form.donem_id)
+            );
+            setFiltreliKonular(elenenler);
+        } else {
+            setFiltreliKonular([]);
+        }
+    }, [form.ders, form.donem_id, tumKonular]);
 
     const handleHarfChange = (e, alan, etiket) => {
         const value = e.target.value;
@@ -124,8 +137,16 @@ export default function OdevGonder() {
 
         if (dosya) formData.append('odev_dosyasi', dosya);
 
+        // 🔥 MÜHÜR: Tanımsız değişken hataları form.donem_id ve form.konu_id ile düzeltildi!
+        const secilenDonemNesnesi = donemListesi.find(d => String(d.id) === String(form.donem_id));
+        const secilenKonuNesnesi = tumKonular.find(k => String(k.id) === String(form.konu_id));
+
+        // Bulunan orijinal isimleri veritabanına kazınması için pakete ekliyoruz
+        if (secilenDonemNesnesi) formData.append('donem_adi', secilenDonemNesnesi.donem_adi);
+        if (secilenKonuNesnesi) formData.append('konu_adi', secilenKonuNesnesi.konu_adi);
+
         setYukleniyor(true);
-        const toastId = toast.loading("Ödeviniz saraya teslim ediliyor...");
+        const toastId = toast.loading("Ödeviniz teslim ediliyor...");
 
         try {
             const res = await axios.post('https://altinolukmyo.apps.srv.aykutdurgut.com.tr/api/sktkodevler', formData);
@@ -196,7 +217,8 @@ export default function OdevGonder() {
 
                     <div className="space-y-1">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">İlgili Ders <span className="text-red-500">*</span></label>
-                        <select value={form.ders} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer" onChange={(e) => setForm({ ...form, ders: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor}>
+                        <select value={form.ders} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer"
+                            onChange={(e) => setForm({ ...form, ders: e.target.value, konu_id: '' })} disabled={yukleniyor || dosyaHazirlaniyor}>
                             <option value="">Lütfen ders seçiniz...</option>
                             {dersListesi.map((d) => <option key={d.id} value={d.ders}>{d.ders}</option>)}
                         </select>
@@ -205,16 +227,21 @@ export default function OdevGonder() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Dönem <span className="text-red-500">*</span></label>
-                            <select value={form.donem_id} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer" onChange={(e) => setForm({ ...form, donem_id: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor}>
+                            <select value={form.donem_id} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer"
+                                onChange={(e) => setForm({ ...form, donem_id: e.target.value, konu_id: '' })} disabled={yukleniyor || dosyaHazirlaniyor}>
                                 <option value="">Dönem seçiniz...</option>
                                 {donemListesi.map((dn) => <option key={dn.id} value={dn.id}>{dn.donem_adi.toUpperCase()}</option>)}
                             </select>
                         </div>
                         <div className="space-y-1">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-2">Ödev Konusu <span className="text-red-500">*</span></label>
-                            <select value={form.konu_id} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer" onChange={(e) => setForm({ ...form, konu_id: e.target.value })} disabled={yukleniyor || dosyaHazirlaniyor}>
-                                <option value="">Konu seçiniz...</option>
-                                {konuListesi.map((kn) => <option key={kn.id} value={kn.id}>{kn.konu_adi}</option>)}
+                            <select value={form.konu_id} className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500/20 text-sm font-semibold transition-all appearance-none cursor-pointer disabled:bg-slate-200 disabled:cursor-not-allowed"
+                                onChange={(e) => setForm({ ...form, konu_id: e.target.value })}
+                                disabled={yukleniyor || dosyaHazirlaniyor || !form.ders || !form.donem_id}>
+                                <option value="">
+                                    {!form.ders || !form.donem_id ? "Önce Ders ve Dönem Seçiniz..." : "Konu seçiniz..."}
+                                </option>
+                                {filtreliKonular.map((kn) => <option key={kn.id} value={kn.id}>{kn.konu_adi}</option>)}
                             </select>
                         </div>
                     </div>
